@@ -419,6 +419,55 @@ Error: The layout of type "int t" is value_or_null
          because the payload of bad_payload has layout value.
 |}]
 
+type ('a, 'b) multi_param =
+  | Nope_multi
+  | Yep_multi of ('a list * 'b)
+[@@or_null]
+
+[%%expect{|
+Lines 1-4, characters 0-11:
+1 | type ('a, 'b) multi_param =
+2 |   | Nope_multi
+3 |   | Yep_multi of ('a list * 'b)
+4 | [@@or_null]
+Error: Invalid [@or_null] declaration:
+       it must have exactly one type parameter.
+|}]
+
+type ('a, 'b) multi_param_succeeds_sep = ('a, 'b) multi_param accepts_sep
+
+[%%expect{|
+Line 1, characters 50-61:
+1 | type ('a, 'b) multi_param_succeeds_sep = ('a, 'b) multi_param accepts_sep
+                                                      ^^^^^^^^^^^
+Error: Unbound type constructor "multi_param"
+|}]
+
+type ('a, 'b) multi_param_succeeds_nonfloat =
+  ('a, 'b) multi_param accepts_nonfloat
+
+[%%expect{|
+Line 2, characters 11-22:
+2 |   ('a, 'b) multi_param accepts_nonfloat
+               ^^^^^^^^^^^
+Error: Unbound type constructor "multi_param"
+|}]
+
+type bad_payload =
+  | Nope_bad
+  | Yep_bad of int t
+[@@or_null]
+
+[%%expect{|
+Lines 1-4, characters 0-11:
+1 | type bad_payload =
+2 |   | Nope_bad
+3 |   | Yep_bad of int t
+4 | [@@or_null]
+Error: Invalid [@or_null] declaration:
+       it must have exactly one nullary constructor and one unary constructor carrying the sole type parameter.
+|}]
+
 (* CR or-null: allow GADT custom [@@or_null] types.
    Internal ticket 6854. *)
 
