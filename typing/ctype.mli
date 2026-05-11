@@ -670,7 +670,11 @@ type unwrapped_type_expr =
     *)
   }
 
-and unwrapped_or_null
+and unwrapped_or_null =
+  { decl : type_declaration
+  ; args : type_expr list
+  ; prev : unwrapped_type_expr
+  }
 
 val get_unboxed_type_representation :
   Env.t ->
