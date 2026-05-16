@@ -419,45 +419,6 @@ Error: The layout of type "int t" is value_or_null
          because the payload of bad_payload has layout value.
 |}]
 
-type ('a, 'b) multi_param =
-  | Nope_multi
-  | Yep_multi of ('a list * 'b)
-[@@or_null]
-
-[%%expect{|
-type ('a, 'b) multi_param = Nope_multi | Yep_multi of ('a list * 'b) [@@or_null]
-|}]
-
-type ('a, 'b) multi_param_succeeds_sep = ('a, 'b) multi_param accepts_sep
-
-[%%expect{|
-type ('a, 'b) multi_param_succeeds_sep = ('a, 'b) multi_param accepts_sep
-|}]
-
-type ('a, 'b) multi_param_succeeds_nonfloat =
-  ('a, 'b) multi_param accepts_nonfloat
-
-[%%expect{|
-type ('a, 'b) multi_param_succeeds_nonfloat =
-    ('a, 'b) multi_param accepts_nonfloat
-|}]
-
-type bad_payload =
-  | Nope_bad
-  | Yep_bad of int t
-[@@or_null]
-
-[%%expect{|
-Line 3, characters 15-20:
-3 |   | Yep_bad of int t
-                   ^^^^^
-Error: The layout of type "int t" is value_or_null
-         because of the definition of t at lines 1-4, characters 0-11.
-       But the layout of type "int t" must be a sublayout of
-           value_maybe_separable
-         because the payload of bad_payload has layout value.
-|}]
-
 (* CR or-null: allow GADT custom [@@or_null] types.
    Internal ticket 6854. *)
 
