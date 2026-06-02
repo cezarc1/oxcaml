@@ -459,6 +459,12 @@ type expected_mode =
 
         Each location points to the corresponding sub-pattern of [Ppat_tuple].
     *)
+
+    return_from_exclave : bool ref option;
+    (** Indicates whether the expected mode is for an exclave expression in tail
+        position. The field is a bool ref so that it is preserved across all
+        copies.
+    *)
   }
 
 type position_and_mode = {
@@ -528,7 +534,8 @@ let mode_default mode =
   { position = RNontail;
     mode = Value.disallow_left mode;
     strictly_local = false;
-    tuple_modes = None }
+    tuple_modes = None;
+    return_from_exclave = None }
 
 let mode_legacy = mode_default Value.legacy
 
@@ -639,6 +646,10 @@ let mode_strictly_local expected_mode =
   { expected_mode
     with strictly_local = true
   }
+
+let mode_return_from_exclave expected_mode r =
+  { expected_mode
+    with return_from_exclave = Some r }
 
 let mode_coerce mode expected_mode =
   mode_morph (fun m -> Value.meet [m; mode]) expected_mode
@@ -795,13 +806,24 @@ let newvar_below_if_modepoly level m =
   else m
 
 let newvar_above_if_modepoly level m =
-  if Language_extension.(is_at_least Mode_polymorphism Beta)
+  if Language_extension.(is_at_least_mode_poly Beta)
   then fst (Locality.newvar_above level m)
   else m
 
 let create_allocation_mode_l mode =
   let locality_mode = Alloc.proj_comonadic Areality mode in
   newvar_above_if_modepoly 0 locality_mode |> Locality.disallow_right
+
+let create_function_return_mode
+    ~return_from_exclave ret_mode : return_mode =
+  let ret_mode =
+    if Language_extension.(is_at_least_mode_poly Beta) then
+      if return_from_exclave
+      then Locality.disallow_right Locality.local
+      else Locality.disallow_right Locality.global
+    else create_allocation_mode_l ret_mode
+  in
+  Typedtree.create_return_mode ret_mode
 
 let create_allocation_mode_r mode =
   let locality_mode = Alloc.proj_comonadic Areality mode in
@@ -5118,7 +5140,7 @@ let type_omitted_parameters_and_build_result_type expected_mode env loc ty_ret
                 (mode_partial_fun:: mode_closed_args))
              in
              let mode_closure =
-               Alloc.proj_comonadic Areality (Alloc.disallow_left mode_cls)
+               create_allocation_mode_r mode_cls
              in
              let mode_arg =
                create_allocation_mode_l mode_arg
@@ -7193,6 +7215,8 @@ and type_expect_
           let exp =
             type_expect ~recarg new_env mode' sbody ty_expected_explained
           in
+          Option.iter (fun excl -> excl := true)
+            expected_mode.return_from_exclave;
           submode ~loc ~env ~reason:Other
             (Value.min_with_comonadic Areality Regionality.regional)
             expected_mode;
@@ -9370,6 +9394,10 @@ and type_function
             ty_default_arg, Some (default_arg, arg_label, default_arg_sort),
               default_arg_sort
       in
+      let excl = ref false in
+      let expected_inner_mode =
+        mode_return_from_exclave expected_inner_mode excl
+      in
       let (pat, params, body, ret_info, newtypes, contains_gadt, curry), partial =
         (* Check everything else in the scope of the parameter. *)
         map_half_typed_cases Value env expected_pat_mode
@@ -9528,14 +9556,14 @@ and type_function
             };
         }
       in
+      let return_from_exclave = !excl in
+      let ret_mode =
+        create_function_return_mode ~return_from_exclave ret_mode
+      in
       let ret_info =
         match ret_info with
         | Some _ as x -> x
         | None ->
-          let ret_mode =
-            create_allocation_mode_l ret_mode
-            |> create_return_mode
-          in
           let ret_mode =
             {ret_mode_annots with mode_modes = ret_mode }
           in
@@ -11244,6 +11272,10 @@ and type_function_cases_expect
         ~ret_mode_annots:Mode.Alloc.Const.Option.none
         ~is_first_val_param:first ~is_final_val_param:true
     in
+    let excl = ref false in
+    let expected_inner_mode =
+      mode_return_from_exclave expected_inner_mode excl
+    in
     let cases, partial =
       type_cases Value env
         expected_pat_mode expected_inner_mode ty_arg_mono arg_sort
@@ -11277,11 +11309,12 @@ and type_function_cases_expect
       { fun_closure_mode = closure_mode;
         alloc_mode }
     in
+    let return_from_exclave = !excl in
     cases, ty_fun, fun_alloc_mode,
       { ret_sort;
         ret_mode =
           { mode_modes =
-              create_allocation_mode_l ret_mode |> create_return_mode;
+              create_function_return_mode ~return_from_exclave ret_mode;
             mode_desc = [] } }
   end
 
