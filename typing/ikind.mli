@@ -29,6 +29,7 @@ type mode_crossing_error =
     super_poly : Types.Ldd.node;
     failing_poly : Types.Ldd.node;
     fast_path : string;
+    provenance_names : Types.Ldd.Name.t list;
     violating_axes : Jkind_axis.Axis.packed list
   }
 
@@ -66,6 +67,17 @@ val check_type_expr_bound :
   context:Jkind.jkind_context ->
   Env.t ->
   ty:Types.type_expr ->
+  actual:Types.jkind_l ->
+  bound:Types.jkind_l ->
+  (unit, subjkind_error) result
+
+val check_type_decl_bound :
+  ?allow_any_crossing:bool ->
+  ?origin:string ->
+  type_equal:(Types.type_expr -> Types.type_expr -> bool) ->
+  context:Jkind.jkind_context ->
+  Env.t ->
+  decl:Types.type_declaration ->
   actual:Types.jkind_l ->
   bound:Types.jkind_l ->
   (unit, subjkind_error) result

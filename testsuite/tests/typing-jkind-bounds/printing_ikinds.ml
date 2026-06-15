@@ -24,8 +24,8 @@ type 'a t : immutable_data = A of 'a
 Line 1, characters 0-36:
 1 | type 'a t : immutable_data = A of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because 'a does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
@@ -33,8 +33,8 @@ type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
 Line 1, characters 0-61:
 1 | type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because 'b does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 type 'a t : immutable_data = Foo of 'a @@ portable
@@ -42,8 +42,8 @@ type 'a t : immutable_data = Foo of 'a @@ portable
 Line 1, characters 0-50:
 1 | type 'a t : immutable_data = Foo of 'a @@ portable
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because 'a does not cross linearity, contention, forkable, yielding, statefulness, and visibility.
 |}]
 
 module M : sig

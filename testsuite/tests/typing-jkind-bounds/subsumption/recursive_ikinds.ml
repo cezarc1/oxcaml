@@ -70,8 +70,8 @@ end = My_list
 Line 2, characters 2-70:
 2 |   type 'a t : immutable_data with 'a = Nil | Cons of 'a * 'a My_list.t
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because 'a My_list.t does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 module rec My_list : sig
@@ -82,11 +82,7 @@ module My_list = struct
 end
 [%%expect {|
 module rec My_list : sig type 'a t = Nil | Cons of 'a * 'a My_list.t end
-Line 5, characters 2-51:
-5 |   type 'a t : immutable_data with 'a = 'a My_list.t
-      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "'a My_list.t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+module My_list : sig type 'a t = 'a My_list.t end
 |}]
 
 type my_int_list : immutable_data = Nil | Cons of int * my_int_list

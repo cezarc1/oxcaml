@@ -98,8 +98,8 @@ type u
 Line 4, characters 0-36:
 4 | type t : value mod global with a = u
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "u" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
+Error: This type definition does not satisfy its kind annotation value mod global with a,
+       because u does not cross locality, uniqueness, forkable, and yielding.
 |}]
 
 module F (M : sig type t end) = struct

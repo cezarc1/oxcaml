@@ -172,8 +172,8 @@ type 'a t : immutable_data = Foo of 'a
 Line 1, characters 0-38:
 1 | type 'a t : immutable_data = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because 'a does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 type 'a t : immutable_data = Foo of { mutable x : 'a }
@@ -181,8 +181,9 @@ type 'a t : immutable_data = Foo of { mutable x : 'a }
 Line 1, characters 0-54:
 1 | type 'a t : immutable_data = Foo of { mutable x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, portability, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data, because
+       - 'a does not cross contention, portability, statefulness, and visibility
+       - mutable field x : 'a does not cross contention and visibility
 |}]
 
 type t : immutable_data = Foo | Bar of int ref
@@ -190,8 +191,8 @@ type t : immutable_data = Foo | Bar of int ref
 Line 1, characters 0-46:
 1 | type t : immutable_data = Foo | Bar of int ref
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because int ref does not cross contention and visibility.
 |}]
 
 type t : immutable_data = Foo of (unit -> unit)
@@ -199,8 +200,8 @@ type t : immutable_data = Foo of (unit -> unit)
 Line 1, characters 0-47:
 1 | type t : immutable_data = Foo of (unit -> unit)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, portability, forkable, yielding, statefulness
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because unit -> unit does not cross linearity, portability, forkable, yielding, and statefulness.
 |}]
 
 type 'a t : immutable_data = Foo of 'a option
@@ -208,8 +209,8 @@ type 'a t : immutable_data = Foo of 'a option
 Line 1, characters 0-45:
 1 | type 'a t : immutable_data = Foo of 'a option
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because 'a does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 type t : immutable_data = Foo of int * int | Bar of { mutable z : int }
@@ -217,8 +218,8 @@ type t : immutable_data = Foo of int * int | Bar of { mutable z : int }
 Line 1, characters 0-71:
 1 | type t : immutable_data = Foo of int * int | Bar of { mutable z : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because mutable field z : int does not cross contention and visibility.
 |}]
 
 type t : mutable_data = Foo of { x : unit -> unit }
@@ -226,8 +227,8 @@ type t : mutable_data = Foo of { x : unit -> unit }
 Line 1, characters 0-51:
 1 | type t : mutable_data = Foo of { x : unit -> unit }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, portability, forkable, yielding, statefulness
+Error: This type definition does not satisfy its kind annotation mutable_data,
+       because unit -> unit does not cross linearity, portability, forkable, yielding, and statefulness.
 |}]
 
 type ('a : value mod portable) t : value mod many = Foo of 'a
@@ -235,8 +236,8 @@ type ('a : value mod portable) t : value mod many = Foo of 'a
 Line 1, characters 0-61:
 1 | type ('a : value mod portable) t : value mod many = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity
+Error: This type definition does not satisfy its kind annotation value mod many,
+       because 'a does not cross linearity.
 |}]
 
 type ('a : value mod global) t : value mod global = Foo of 'a
@@ -244,8 +245,8 @@ type ('a : value mod global) t : value mod global = Foo of 'a
 Line 1, characters 0-61:
 1 | type ('a : value mod global) t : value mod global = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness
+Error: This type definition does not satisfy its kind annotation value mod global,
+       because this variant type does not cross locality and uniqueness.
 |}]
 
 type ('a : value mod aliased) t : value mod aliased = Foo of 'a
@@ -253,8 +254,8 @@ type ('a : value mod aliased) t : value mod aliased = Foo of 'a
 Line 1, characters 0-63:
 1 | type ('a : value mod aliased) t : value mod aliased = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: uniqueness
+Error: This type definition does not satisfy its kind annotation value mod aliased,
+       because this variant type does not cross uniqueness.
 |}]
 
 type ('a : value mod external_) t : value mod external_ = Foo of 'a
@@ -262,8 +263,8 @@ type ('a : value mod external_) t : value mod external_ = Foo of 'a
 Line 1, characters 0-67:
 1 | type ('a : value mod external_) t : value mod external_ = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: externality
+Error: This type definition does not satisfy its kind annotation value mod external_,
+       because this variant type does not cross externality.
 |}]
 
 type t : sync_data = Foo of { mutable x : int ref [@atomic] }
@@ -271,8 +272,8 @@ type t : sync_data = Foo of { mutable x : int ref [@atomic] }
 Line 1, characters 0-61:
 1 | type t : sync_data = Foo of { mutable x : int ref [@atomic] }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation sync_data,
+       because int ref does not cross contention.
 |}]
 
 type ('a : mutable_data) t : sync_data = Foo of { mutable x : 'a [@atomic] }
@@ -280,8 +281,8 @@ type ('a : mutable_data) t : sync_data = Foo of { mutable x : 'a [@atomic] }
 Line 1, characters 0-76:
 1 | type ('a : mutable_data) t : sync_data = Foo of { mutable x : 'a [@atomic] }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation sync_data,
+       because 'a does not cross contention.
 |}]
 
 (**** Test 2: Annotations with "with" are accepted when appropriate ****)
@@ -315,8 +316,8 @@ type 'a t : immutable_data with 'a = Foo of { mutable x : 'a }
 Line 1, characters 0-62:
 1 | type 'a t : immutable_data with 'a = Foo of { mutable x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because mutable field x : 'a does not cross contention and visibility.
 |}]
 
 type 'a t : immutable_data with 'a = Foo of { x : 'a -> 'a }
@@ -324,8 +325,8 @@ type 'a t : immutable_data with 'a = Foo of { x : 'a -> 'a }
 Line 1, characters 0-60:
 1 | type 'a t : immutable_data with 'a = Foo of { x : 'a -> 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, portability, forkable, yielding, statefulness
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because 'a -> 'a does not cross linearity, portability, forkable, yielding, and statefulness.
 |}]
 
 type 'a t : value mod global with 'a = Foo of 'a
@@ -333,8 +334,8 @@ type 'a t : value mod global with 'a = Foo of 'a
 Line 1, characters 0-48:
 1 | type 'a t : value mod global with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness
+Error: This type definition does not satisfy its kind annotation value mod global with 'a,
+       because this variant type does not cross locality and uniqueness.
 |}]
 
 type 'a t : value mod aliased with 'a = Foo of 'a
@@ -342,8 +343,8 @@ type 'a t : value mod aliased with 'a = Foo of 'a
 Line 1, characters 0-49:
 1 | type 'a t : value mod aliased with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: uniqueness
+Error: This type definition does not satisfy its kind annotation value mod aliased with 'a,
+       because this variant type does not cross uniqueness.
 |}]
 
 type 'a t : value mod external_ with 'a = Foo of 'a
@@ -351,8 +352,8 @@ type 'a t : value mod external_ with 'a = Foo of 'a
 Line 1, characters 0-51:
 1 | type 'a t : value mod external_ with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: externality
+Error: This type definition does not satisfy its kind annotation value mod external_ with 'a,
+       because this variant type does not cross externality.
 |}]
 
 (**** Test 3: Variant values cross when appropriate ****)

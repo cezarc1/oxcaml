@@ -58,8 +58,8 @@ module Ref : sig type 'a t = 'a ref end
 Line 4, characters 0-48:
 4 | type 'a t : immutable_data with 'a = 'a F(Ref).t
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "'a F(Ref).t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because 'a F(Ref).t does not cross contention and visibility.
 |}]
 
 module Ref = struct

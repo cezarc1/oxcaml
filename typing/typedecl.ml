@@ -3501,7 +3501,7 @@ let normalize_decl_jkinds env decls =
       match
         (* CR layouts v2.8: Consider making a function that doesn't compute
            histories for this use-case, which doesn't need it. *)
-        Ikind.sub_jkind_l
+        Ikind.check_type_decl_bound
           ~origin:(Format.asprintf
                      "typedecl:normalize %a (%a)"
                      (Format_doc.compat Path.print) path
@@ -3510,8 +3510,9 @@ let normalize_decl_jkinds env decls =
           ~context
           ~allow_any_crossing
           env
-          decl.type_jkind
-          original_decl.type_jkind
+          ~decl
+          ~actual:decl.type_jkind
+          ~bound:original_decl.type_jkind
       with
       | Ok _ ->
         if allow_any_crossing then

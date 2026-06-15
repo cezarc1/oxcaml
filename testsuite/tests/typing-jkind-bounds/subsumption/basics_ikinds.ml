@@ -121,8 +121,8 @@ type ('a, 'b) u : immutable_data with 'a with 'b
 Line 2, characters 0-53:
 2 | type ('a, 'b) t : immutable_data with 'a = ('a, 'b) u
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "('a, 'b) u" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because 'b does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 type ('a, 'b) t : immutable_data with 'a with 'b
@@ -566,8 +566,8 @@ type r
 Line 3, characters 0-62:
 3 | type should_fail_too : immutable_data with r = [`A of int ref]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "[ `A of int ref ]" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with r,
+       because int ref does not cross contention and visibility.
 |}]
 
 module M : sig
@@ -581,8 +581,8 @@ end
 Line 3, characters 2-42:
 3 |   type t : immutable_data with r = int ref
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type int ref is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with r/2,
+       because int ref does not cross contention and visibility.
 |}]
 
 type should_likewise_fail : immutable_data = (int ref * (int -> int))

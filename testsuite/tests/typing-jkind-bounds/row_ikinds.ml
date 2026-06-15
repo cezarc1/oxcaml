@@ -166,16 +166,16 @@ type ('a, 'b) t : immutable_data with 'a = [< `X | `Y of 'a] as 'b
 Line 1, characters 0-66:
 1 | type ('a, 'b) t : immutable_data with 'a = [< `X | `Y of 'a] as 'b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "[< `X | `Y of 'a ]" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because [< `X | `Y of 'a ] does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 type ('a, 'b) u : immutable_data with 'a = [> `X | `Y of 'a] as 'b
 [%%expect{|
 Line 1, characters 0-66:
 1 | type ('a, 'b) u : immutable_data with 'a = [> `X | `Y of 'a] as 'b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "[> `X | `Y of 'a ]" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because [> `X | `Y of 'a ] does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 (* less-than rows *)
@@ -200,8 +200,8 @@ end
 Line 2, characters 2-83:
 2 |   type 'a t : immutable_data with 'a = private [< `A of 'a | `B of ('a * 'a) | `C ]
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "[< `A of 'a | `B of 'a * 'a | `C ]" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
+       because [< `A of 'a | `B of 'a * 'a | `C ] does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 (* Tunivar-ified row variables *)
@@ -317,11 +317,7 @@ type t3 : value non_float mod everything with [ `A of string] t1 = C of string  
    ikinds regression vs non-ikinds.
    Internal ticket 6481. *)
 [%%expect{|
-Line 1, characters 0-78:
-1 | type t3 : value non_float mod everything with [ `A of string] t1 = C of string  (* should be accepted *)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t3" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, externality
+type t3 = C of string
 |}]
 
 type 'a t1 = [> `A of string | `B of int ] as 'a
@@ -344,11 +340,7 @@ type t3 : value non_float mod everything with [ `A of string | `B of int | `C ] 
    ikinds regression vs non-ikinds.
    Internal ticket 6481. *)
 [%%expect{|
-Line 1, characters 0-96:
-1 | type t3 : value non_float mod everything with [ `A of string | `B of int | `C ] t1 = C of string  (* should be accepted *)
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t3" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, externality
+type t3 = C of string
 |}]
 
 module type S = sig

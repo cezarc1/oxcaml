@@ -574,8 +574,8 @@ type t : immutable_data = { mutable x : int}
 Line 1, characters 0-44:
 1 | type t : immutable_data = { mutable x : int}
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because mutable field x : int does not cross contention and visibility.
 |}]
 
 type ('a : mutable_data) t : immutable_data = { x : 'a }
@@ -583,8 +583,8 @@ type ('a : mutable_data) t : immutable_data = { x : 'a }
 Line 1, characters 0-56:
 1 | type ('a : mutable_data) t : immutable_data = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because 'a does not cross contention and visibility.
 |}]
 
 (***************)
@@ -1015,8 +1015,8 @@ type 'a u = Foo of { x : 'a; }
 Line 2, characters 0-53:
 2 | type 'a t : immutable_data = 'a u = Foo of { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because 'a does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 (**********************************)

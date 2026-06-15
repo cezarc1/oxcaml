@@ -8703,7 +8703,7 @@ let constrain_decl_jkind env decl jkind =
       Ikind.sub_or_error ~type_equal ~context env
         decl.type_jkind jkind
     with
-    | Ok () as ok -> ok
+    | Ok () -> Ok ()
     | Error err ->
         match decl.type_manifest with
         | None -> Error (Ikind.Jkind_error err)

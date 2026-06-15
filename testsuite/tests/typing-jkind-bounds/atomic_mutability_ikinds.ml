@@ -17,8 +17,8 @@ type t : sync_data = { mutable x : int }
 Line 1, characters 0-40:
 1 | type t : sync_data = { mutable x : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation sync_data,
+       because mutable field x : int does not cross contention.
 |}]
 
 type t : sync_data =
@@ -27,8 +27,8 @@ type t : sync_data =
 Lines 1-2, characters 0-48:
 1 | type t : sync_data =
 2 |   { mutable x : int; mutable y : int [@atomic] }
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation sync_data,
+       because mutable field x : int does not cross contention.
 |}]
 
 (* Variants: atomic record payloads are sync_data. *)
@@ -43,8 +43,8 @@ type t : sync_data = A of { mutable x : int } | B
 Line 1, characters 0-49:
 1 | type t : sync_data = A of { mutable x : int } | B
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation sync_data,
+       because mutable field x : int does not cross contention.
 |}]
 
 type t : sync_data =
@@ -53,6 +53,6 @@ type t : sync_data =
 Lines 1-2, characters 0-53:
 1 | type t : sync_data =
 2 |   A of { mutable x : int; mutable y : int [@atomic] }
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation sync_data,
+       because mutable field x : int does not cross contention.
 |}]

@@ -1118,8 +1118,8 @@ type t : value mod global = { x : int}
 Line 1, characters 0-38:
 1 | type t : value mod global = { x : int}
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness
+Error: This type definition does not satisfy its kind annotation value mod global,
+       because this record type does not cross locality and uniqueness.
 |}]
 
 type t : any mod portable = { x : float }
@@ -1153,8 +1153,9 @@ type t : value mod global = { x : t_value }
 Line 1, characters 0-43:
 1 | type t : value mod global = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
+Error: This type definition does not satisfy its kind annotation value mod global, because
+       - this record type does not cross locality and uniqueness
+       - t_value does not cross locality, uniqueness, forkable, and yielding
 |}]
 
 type t : value mod aliased = { x : t_value }
@@ -1162,8 +1163,9 @@ type t : value mod aliased = { x : t_value }
 Line 1, characters 0-44:
 1 | type t : value mod aliased = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: uniqueness
+Error: This type definition does not satisfy its kind annotation value mod aliased, because
+       - this record type does not cross uniqueness
+       - t_value does not cross uniqueness
 |}]
 
 type t : value mod many = { x : t_value }
@@ -1171,8 +1173,8 @@ type t : value mod many = { x : t_value }
 Line 1, characters 0-41:
 1 | type t : value mod many = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity
+Error: This type definition does not satisfy its kind annotation value mod many,
+       because t_value does not cross linearity.
 |}]
 
 type t : value mod portable = { x : t_value }
@@ -1180,8 +1182,8 @@ type t : value mod portable = { x : t_value }
 Line 1, characters 0-45:
 1 | type t : value mod portable = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+Error: This type definition does not satisfy its kind annotation value mod portable,
+       because t_value does not cross portability.
 |}]
 
 type t : value mod contended = { x : t_value }
@@ -1189,8 +1191,8 @@ type t : value mod contended = { x : t_value }
 Line 1, characters 0-46:
 1 | type t : value mod contended = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation value mod contended,
+       because t_value does not cross contention.
 |}]
 
 type t : value mod external_ = { x : t_value }
@@ -1198,8 +1200,9 @@ type t : value mod external_ = { x : t_value }
 Line 1, characters 0-46:
 1 | type t : value mod external_ = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: externality
+Error: This type definition does not satisfy its kind annotation value mod external_, because
+       - this record type does not cross externality
+       - t_value does not cross externality
 |}]
 
 (***************************************)
@@ -1222,8 +1225,8 @@ type t : value mod global = Foo of int
 Line 1, characters 0-38:
 1 | type t : value mod global = Foo of int
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness
+Error: This type definition does not satisfy its kind annotation value mod global,
+       because this variant type does not cross locality and uniqueness.
 |}]
 
 type t : any mod portable = Foo of float
@@ -1278,8 +1281,9 @@ type t : value mod global = Foo of t_value
 Line 1, characters 0-42:
 1 | type t : value mod global = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
+Error: This type definition does not satisfy its kind annotation value mod global, because
+       - this variant type does not cross locality and uniqueness
+       - t_value does not cross locality, uniqueness, forkable, and yielding
 |}]
 
 type t : value mod aliased = Foo of t_value
@@ -1287,8 +1291,9 @@ type t : value mod aliased = Foo of t_value
 Line 1, characters 0-43:
 1 | type t : value mod aliased = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: uniqueness
+Error: This type definition does not satisfy its kind annotation value mod aliased, because
+       - this variant type does not cross uniqueness
+       - t_value does not cross uniqueness
 |}]
 
 type t : value mod many = Foo of t_value
@@ -1296,8 +1301,8 @@ type t : value mod many = Foo of t_value
 Line 1, characters 0-40:
 1 | type t : value mod many = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity
+Error: This type definition does not satisfy its kind annotation value mod many,
+       because t_value does not cross linearity.
 |}]
 
 type t : value mod portable = Foo of t_value
@@ -1305,8 +1310,8 @@ type t : value mod portable = Foo of t_value
 Line 1, characters 0-44:
 1 | type t : value mod portable = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+Error: This type definition does not satisfy its kind annotation value mod portable,
+       because t_value does not cross portability.
 |}]
 
 type t : value mod contended = Foo of t_value
@@ -1314,8 +1319,8 @@ type t : value mod contended = Foo of t_value
 Line 1, characters 0-45:
 1 | type t : value mod contended = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+Error: This type definition does not satisfy its kind annotation value mod contended,
+       because t_value does not cross contention.
 |}]
 
 type t : value mod external_ = Foo of t_value
@@ -1323,8 +1328,9 @@ type t : value mod external_ = Foo of t_value
 Line 1, characters 0-45:
 1 | type t : value mod external_ = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: externality
+Error: This type definition does not satisfy its kind annotation value mod external_, because
+       - this variant type does not cross externality
+       - t_value does not cross externality
 |}]
 
 (***************************************)

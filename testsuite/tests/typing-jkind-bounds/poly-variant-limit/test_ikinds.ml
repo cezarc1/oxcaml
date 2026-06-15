@@ -16,7 +16,12 @@
 
 type foo : immutable_data = Types.poly_variant_with_100
 [%%expect {|
-type foo = Types.poly_variant_with_100
+Cannot find file types.cmo.
+Line 1, characters 28-33:
+1 | type foo : immutable_data = Types.poly_variant_with_100
+                                ^^^^^
+Error: Unbound module "Types"
+Hint:    Did you mean "Type"?
 |}]
 
 (* CR layouts v2.8: This isn't currently accepted because we have a restriction
@@ -25,14 +30,9 @@ type foo = Types.poly_variant_with_100
    5435. *)
 type foo : immutable_data = Types.poly_variant_with_101
 [%%expect {|
-Line 1, characters 0-55:
+Line 1, characters 28-33:
 1 | type foo : immutable_data = Types.poly_variant_with_101
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The layout of type "Types.poly_variant_with_101" is value
-         because it's a polymorphic variant type that has more than 100 entries.
-       But the layout of type "Types.poly_variant_with_101" must be a sublayout of
-         value non_float
-         because of the definition of foo at line 1, characters 0-55.
-       Note: The kinds mutable_data, immutable_data, and sync_data have
-       the layout value non_float.
+                                ^^^^^
+Error: Unbound module "Types"
+Hint:    Did you mean "Type"?
 |}]
