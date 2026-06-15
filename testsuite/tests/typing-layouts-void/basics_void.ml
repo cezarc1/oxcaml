@@ -64,20 +64,16 @@ type bad : immediate = A of key
 Line 1, characters 0-31:
 1 | type bad : immediate = A of key
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "bad" is immediate with key
-         because it's an enumeration variant type (all constructors are constant).
-       But the kind of type "bad" must be a subkind of immediate
-         because of the annotation on the declaration of the type bad.
+Error: This type definition does not satisfy its kind annotation immediate,
+       because key does not cross locality, uniqueness, linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 type bad : immediate = A of #(unit_u * key r)
 [%%expect{|
 Line 1, characters 0-45:
 1 | type bad : immediate = A of #(unit_u * key r)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "bad" is immediate with key with unit_u
-         because it's an enumeration variant type (all constructors are constant).
-       But the kind of type "bad" must be a subkind of immediate
-         because of the annotation on the declaration of the type bad.
+Error: This type definition does not satisfy its kind annotation immediate,
+       because key does not cross locality, uniqueness, linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 
@@ -106,10 +102,8 @@ type bad : immediate with v1 =
 Lines 1-2, characters 0-33:
 1 | type bad : immediate with v1 =
 2 |   A of v1 | B of #(unit_u * v2 r)
-Error: The kind of type "bad" is immediate with unit_u with v1 with v2
-         because it's an enumeration variant type (all constructors are constant).
-       But the kind of type "bad" must be a subkind of immediate with v1
-         because of the annotation on the declaration of the type bad.
+Error: This type definition does not satisfy its kind annotation immediate with v1,
+       because v2 does not cross locality, uniqueness, linearity, contention, portability, forkable, yielding, statefulness, and visibility.
 |}]
 
 type vme : void

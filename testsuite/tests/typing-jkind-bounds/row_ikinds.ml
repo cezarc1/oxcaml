@@ -317,7 +317,12 @@ type t3 : value non_float mod everything with [ `A of string] t1 = C of string  
    ikinds regression vs non-ikinds.
    Internal ticket 6481. *)
 [%%expect{|
-type t3 = C of string
+Line 1, characters 0-78:
+1 | type t3 : value non_float mod everything with [ `A of string] t1 = C of string  (* should be accepted *)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: This type definition does not satisfy its kind annotation value mod everything non_float with [ `A of string ] t1, because
+       - this variant type does not cross locality, uniqueness, and externality
+       - string does not cross locality, uniqueness, and externality
 |}]
 
 type 'a t1 = [> `A of string | `B of int ] as 'a
@@ -340,7 +345,12 @@ type t3 : value non_float mod everything with [ `A of string | `B of int | `C ] 
    ikinds regression vs non-ikinds.
    Internal ticket 6481. *)
 [%%expect{|
-type t3 = C of string
+Line 1, characters 0-96:
+1 | type t3 : value non_float mod everything with [ `A of string | `B of int | `C ] t1 = C of string  (* should be accepted *)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: This type definition does not satisfy its kind annotation value mod everything non_float with [ `A of string | `B of int | `C ] t1, because
+       - this variant type does not cross locality, uniqueness, and externality
+       - string does not cross locality, uniqueness, and externality
 |}]
 
 module type S = sig
