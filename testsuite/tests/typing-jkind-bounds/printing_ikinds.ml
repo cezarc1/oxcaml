@@ -24,10 +24,8 @@ type 'a t : immutable_data = A of 'a
 Line 1, characters 0-36:
 1 | type 'a t : immutable_data = A of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
@@ -35,10 +33,8 @@ type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
 Line 1, characters 0-61:
 1 | type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a with 'b
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data with 'a
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 type 'a t : immutable_data = Foo of 'a @@ portable
@@ -46,18 +42,8 @@ type 'a t : immutable_data = Foo of 'a @@ portable
 Line 1, characters 0-50:
 1 | type 'a t : immutable_data = Foo of 'a @@ portable
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a @@ portable
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
-
-       The first mode-crosses less than the second along:
-         linearity: mod many with 'a ≰ mod many
-         contention: mod contended with 'a ≰ mod contended
-         forkable: mod forkable with 'a ≰ mod forkable
-         yielding: mod unyielding with 'a ≰ mod unyielding
-         statefulness: mod stateless with 'a ≰ mod stateless
-         visibility: mod immutable with 'a ≰ mod immutable
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, forkable, yielding, statefulness, visibility
 |}]
 
 module M : sig
@@ -101,17 +87,8 @@ Error: Signature mismatch:
          type 'a t = Foo of 'a @@ many contended
        is not included in
          type 'a t : immutable_data
-       The kind of the first is immutable_data with 'a @@ many contended
-         because of the definition of t at line 4, characters 2-41.
-       But the kind of the first must be a subkind of immutable_data
-         because of the definition of t at line 2, characters 2-28.
-
-       The first mode-crosses less than the second along:
-         portability: mod portable with 'a ≰ mod portable
-         forkable: mod forkable with 'a ≰ mod forkable
-         yielding: mod unyielding with 'a ≰ mod unyielding
-         statefulness: mod stateless with 'a ≰ mod stateless
-         visibility: mod immutable with 'a ≰ mod immutable
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: portability, forkable, yielding, statefulness, visibility
 |}]
 
 module M : sig
@@ -136,14 +113,8 @@ Error: Signature mismatch:
          type t = Foo of a | Bar of a @@ contended
        is not included in
          type t : immutable_data with a @@ portable
-       The kind of the first is immutable_data with a
-         because of the definition of t at line 6, characters 4-45.
-       But the kind of the first must be a subkind of
-           immutable_data with a @@ portable
-         because of the definition of t at line 3, characters 2-44.
-
-       The first mode-crosses less than the second along:
-         portability: mod portable with a ≰ mod portable
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 type a
@@ -254,10 +225,8 @@ Error: Signature mismatch:
          type t : value mod contended
        is not included in
          type t : value mod portable
-       The kind of the first is value mod contended
-         because of the definition of t at line 4, characters 2-30.
-       But the kind of the first must be a subkind of value mod portable
-         because of the definition of t at line 2, characters 2-29.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 module M : sig
@@ -279,11 +248,8 @@ Error: Signature mismatch:
          type 'a t : value mod contended with 'a
        is not included in
          type 'a t : value mod portable with 'a
-       The kind of the first is value mod contended with 'a
-         because of the definition of t at line 4, characters 2-41.
-       But the kind of the first must be a subkind of
-           value mod portable with 'a
-         because of the definition of t at line 2, characters 2-40.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 module M : sig
@@ -305,11 +271,8 @@ Error: Signature mismatch:
          type 'a t : value mod contended with 'a
        is not included in
          type 'a t : value mod portable contended with 'a
-       The kind of the first is value mod contended with 'a
-         because of the definition of t at line 4, characters 2-41.
-       But the kind of the first must be a subkind of
-           value mod portable contended with 'a
-         because of the definition of t at line 2, characters 2-50.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 module M : sig
@@ -331,10 +294,8 @@ Error: Signature mismatch:
          type 'a t : value mod portable with 'a
        is not included in
          type 'a t : value mod portable
-       The kind of the first is value mod portable with 'a
-         because of the definition of t at line 4, characters 2-40.
-       But the kind of the first must be a subkind of value mod portable
-         because of the definition of t at line 2, characters 2-52.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 module M : sig
@@ -356,16 +317,8 @@ Error: Signature mismatch:
          type 'a t : mutable_data with 'a
        is not included in
          type 'a t : mutable_data with 'a @@ forkable unyielding many
-       The kind of the first is mutable_data with 'a
-         because of the definition of t at line 4, characters 2-34.
-       But the kind of the first must be a subkind of
-           mutable_data with 'a @@ forkable unyielding many
-         because of the definition of t at line 2, characters 2-40.
-
-       The first mode-crosses less than the second along:
-         linearity: mod many with 'a ≰ mod many
-         forkable: mod forkable with 'a ≰ mod forkable
-         yielding: mod unyielding with 'a ≰ mod unyielding
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, forkable, yielding
 |}]
 
 module M : sig
@@ -387,10 +340,8 @@ Error: Signature mismatch:
          type 'a t : value mod portable with 'a
        is not included in
          type 'a t : value mod portable
-       The kind of the first is value mod portable with 'a
-         because of the definition of t at line 4, characters 2-60.
-       But the kind of the first must be a subkind of value mod portable
-         because of the definition of t at line 2, characters 2-52.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 type 'a t_mutable : mutable_data with 'a
@@ -414,10 +365,8 @@ Error: Signature mismatch:
          type 'a t : immutable_data with 'a t_mutable
        is not included in
          type 'a t : immutable_data with 'a
-       The kind of the first is immutable_data with 'a t_mutable
-         because of the definition of t at line 5, characters 2-46.
-       But the kind of the first must be a subkind of immutable_data with 'a
-         because of the definition of t at line 3, characters 2-56.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, visibility
 |}]
 
 module M : sig
@@ -439,13 +388,6 @@ Error: Signature mismatch:
          type 'a t : mutable_data with 'a @@ forkable unyielding many
        is not included in
          type 'a t : immutable_data with 'a
-       The kind of the first is
-           mutable_data with 'a @@ forkable unyielding many
-         because of the definition of t at line 4, characters 2-40.
-       But the kind of the first must be a subkind of immutable_data with 'a
-         because of the definition of t at line 2, characters 2-56.
-
-       The first mode-crosses less than the second along:
-         contention: mod uncontended ≰ mod contended with 'a
-         visibility: mod read_write ≰ mod immutable with 'a
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, visibility
 |}]

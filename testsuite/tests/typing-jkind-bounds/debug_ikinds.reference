@@ -1,0 +1,133 @@
+== abstract_plain ==
+       Original inferred jkind:
+         mutable_data with a @@ forkable unyielding many
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         ([0,0,0,0,3,0,0,3,0,0,0] ⊓ a/280[2].0 ⊓ provenance[1:a]) ⊔ ([0,0,0,3,0,0,0,0,3,0,0] ⊓ provenance[0:a ref])
+       Residual provenance decomposition:
+         provenance[0:a ref]: [0,0,0,3,0,0,0,0,3,0,0]
+provenance[1:a]: [0,0,0,0,3,0,0,3,0,0,0] ⊓ a/280[2].0
+       Failing axes: contention, portability, statefulness, visibility
+== abstract_immediate ==
+       Original inferred jkind:
+         mutable_data with a @@ forkable unyielding many
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,0,3,0,0,0,0,3,0,0] ⊓ provenance[0:a ref]
+       Residual provenance decomposition:
+         provenance[0:a ref]: [0,0,0,3,0,0,0,0,3,0,0]
+       Failing axes: contention, visibility
+== abstract_immutable ==
+       Original inferred jkind:
+         mutable_data with a @@ forkable unyielding many
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,0,3,0,0,0,0,3,0,0] ⊓ provenance[0:a ref]
+       Residual provenance decomposition:
+         provenance[0:a ref]: [0,0,0,3,0,0,0,0,3,0,0]
+       Failing axes: contention, visibility
+== alias_ref ==
+       Original inferred jkind:
+         mutable_data with int @@ forkable unyielding many
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,1,3,3,1,1,3,3,0,0] ⊓ provenance[0:a]
+       Residual provenance decomposition:
+         provenance[0:a]: [0,0,1,3,3,1,1,3,3,0,0]
+       Failing axes: linearity, contention, portability, forkable, yielding, statefulness, visibility
+== alias_arrow ==
+       Original inferred jkind:
+         value non_float mod aliased immutable
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,1,3,3,1,1,3,3,0,0] ⊓ provenance[0:a]
+       Residual provenance decomposition:
+         provenance[0:a]: [0,0,1,3,3,1,1,3,3,0,0]
+       Failing axes: linearity, contention, portability, forkable, yielding, statefulness, visibility
+== alias_tuple ==
+       Original inferred jkind:
+         value non_float mod immutable with int ref
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,1,3,3,1,1,3,3,0,0] ⊓ provenance[0:a]
+       Residual provenance decomposition:
+         provenance[0:a]: [0,0,1,3,3,1,1,3,3,0,0]
+       Failing axes: linearity, contention, portability, forkable, yielding, statefulness, visibility
+== parameterized_box ==
+       Original inferred jkind:
+         immutable_data with int ref
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,0,3,0,0,0,0,3,0,0] ⊓ box/280[2].1 ⊓ provenance[1:int ref]
+       Residual provenance decomposition:
+         provenance[1:int ref]: [0,0,0,3,0,0,0,0,3,0,0] ⊓ box/280[2].1
+       Failing axes: contention, visibility
+== polyvariant_with_abstract ==
+       Original inferred jkind:
+         value non_float mod immutable with a ref
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         ([0,0,0,0,3,0,0,3,0,0,0] ⊓ a/280[2].0 ⊓ provenance[3:a]) ⊔ ([0,0,0,3,0,0,0,0,3,0,0] ⊓ provenance[2:a ref]) ⊔ ([0,0,1,0,3,1,1,3,0,0,0] ⊓ provenance[1:int -> int])
+       Residual provenance decomposition:
+         provenance[1:int -> int]: [0,0,1,0,3,1,1,3,0,0,0]
+provenance[2:a ref]: [0,0,0,3,0,0,0,0,3,0,0]
+provenance[3:a]: [0,0,0,0,3,0,0,3,0,0,0] ⊓ a/280[2].0
+       Failing axes: linearity, contention, portability, forkable, yielding, statefulness, visibility
+== object_method ==
+       Original inferred jkind:
+         value non_float mod global many
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,0,3,3,0,0,3,3,0,0] ⊓ provenance[0:< m : int ref >]
+       Residual provenance decomposition:
+         provenance[0:< m : int ref >]: [0,0,0,3,3,0,0,3,3,0,0]
+       Failing axes: contention, portability, statefulness, visibility
+== package_with_ref ==
+       Original inferred jkind:
+         value non_float
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,1,3,3,1,1,3,3,0,0] ⊓ provenance[0:(module T)] ⊓ unknown[Package_with_ref.5]
+       Residual provenance decomposition:
+         provenance[0:(module T)]: [0,0,1,3,3,1,1,3,3,0,0] ⊓ unknown[Package_with_ref.5]
+       Failing axes: linearity, contention, portability, forkable, yielding, statefulness, visibility
+== gadt_pack_ref ==
+       Original inferred jkind:
+         mutable_data
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,0,3,0,0,0,0,3,0,0]
+       Residual provenance decomposition:
+         <untracked>: [0,0,0,3,0,0,0,0,3,0,0]
+       Failing axes: contention, visibility
+== existential_pack_ref ==
+       Original inferred jkind:
+         value non_float mod forkable unyielding many
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,0,3,3,0,0,3,3,0,0]
+       Residual provenance decomposition:
+         <untracked>: [0,0,0,3,3,0,0,3,3,0,0]
+       Failing axes: contention, portability, statefulness, visibility
+== universal_record_ref ==
+       Original inferred jkind:
+         value non_float mod immutable
+       Original required jkind:
+         immutable_data with r
+       Failing ikind residual:
+         [0,0,1,0,3,1,1,3,0,0,0]
+       Residual provenance decomposition:
+         <untracked>: [0,0,1,0,3,1,1,3,0,0,0]
+       Failing axes: linearity, portability, forkable, yielding, statefulness

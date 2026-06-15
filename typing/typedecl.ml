@@ -115,8 +115,8 @@ type error =
   | Multiple_native_repr_attributes
   | Cannot_unbox_or_untag_type of native_repr_kind
   | Deep_unbox_or_untag_attribute of native_repr_kind
-  | Jkind_mismatch_of_type of Env.t * type_expr * Jkind.Violation.t
-  | Jkind_mismatch_of_path of Env.t * Path.t * Jkind.Violation.t
+  | Jkind_mismatch_of_type of Env.t * type_expr * Ikind.subjkind_error
+  | Jkind_mismatch_of_path of Env.t * Path.t * Ikind.subjkind_error
   | Jkind_mismatch_due_to_bad_inference of
       Env.t * type_expr * Jkind.Violation.t * bad_jkind_inference_location
   | Jkind_sort of
@@ -1042,7 +1042,26 @@ let transl_declaration env sdecl (id, uid) =
         Ttype_abstract, Type_abstract Definition,
         Jkind.Builtin.value ~why:Default_type_jkind
       | Ptype_variant scstrs ->
-        if or_null then check_or_null_variant_shape sdecl scstrs;
+        if or_null then begin
+          check_or_null_variant_shape path params sdecl scstrs;
+          match sdecl.ptype_params, params with
+          | [({ ptyp_desc = Ptyp_var (_, _);
+                ptyp_loc;
+                _
+              }, _)],
+            [param] ->
+            let required = Btype.Jkind0.for_or_null_argument id in
+            begin match Ctype.constrain_type_jkind env param required with
+            | Ok () -> ()
+            | Error err ->
+              raise
+                (Error
+                   (ptyp_loc,
+                    Jkind_mismatch_of_type
+                      (env, param, Ikind.Jkind_error err)))
+            end
+          | _ -> assert false
+        end;
         if List.exists (fun cstr -> cstr.pcd_res <> None) scstrs then begin
           match cstrs with
             [] -> ()
@@ -1689,15 +1708,16 @@ let narrow_to_manifest_jkind env loc path decl =
         let type_equal = Ctype.type_equal env in
         let context = Ctype.mk_jkind_context_always_principal env in
         (match
-           Ikind.sub_jkind_l
+           Ikind.check_type_expr_bound
              ~origin:(Format.asprintf
                         "typedecl:manifest_vs_decl %a"
                         Location.print_loc decl.type_loc)
              ~type_equal
              ~context
              env
-             manifest_jkind
-             decl.type_jkind
+             ~ty
+             ~actual:manifest_jkind
+             ~bound:decl.type_jkind
          with
          | Ok () -> ()
          | Error v ->
@@ -1720,7 +1740,10 @@ let narrow_to_manifest_jkind env loc path decl =
                Format.eprintf
                  "[ikind-narrow] path=%a branch=constrain_type_jkind error@."
                  (Format_doc.compat Path.print) path;
-             raise (Error (loc, Jkind_mismatch_of_type (env, ty, v))))
+             raise
+               (Error
+                  (loc,
+                   Jkind_mismatch_of_type (env, ty, Ikind.Jkind_error v))))
     end;
     let type_ikind =
       Ikind.type_declaration_ikind_gated ~env:(Some env) ~path
@@ -2669,7 +2692,10 @@ let rec update_decl_jkind env dpath decl =
   with
   | Ok () -> new_decl
   | Error err ->
-    raise (Error (decl.type_loc, Jkind_mismatch_of_path (env, dpath, err)))
+    raise
+      (Error
+         (decl.type_loc,
+          Jkind_mismatch_of_path (env, dpath, Ikind.Jkind_error err)))
 
 let update_decls_jkind_reason decls =
   List.map
@@ -5652,13 +5678,13 @@ let report_error ~loc = function
       fprintf ppf "type %a" Style.inline_code path_end
     in
     Location.errorf ~loc "%t" (fun ppf ->
-      Jkind.Violation.report_with_offender ~offender
+      Ikind.report_subjkind_error_with_offender ~offender
         env ppf v)
   | Jkind_mismatch_of_type (env, ty, v) ->
     let offender ppf = fprintf ppf "type %a"
         (Style.as_inline_code Printtyp.type_expr) ty in
     Location.errorf ~loc "%t" (fun ppf ->
-      Jkind.Violation.report_with_offender ~offender
+      Ikind.report_subjkind_error_with_offender ~offender
         env ppf v)
   | Jkind_sort {env; kloc; typ; err} ->
     let s =

@@ -17,10 +17,8 @@ type t : sync_data = { mutable x : int }
 Line 1, characters 0-40:
 1 | type t : sync_data = { mutable x : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is mutable_data
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of sync_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]
 
 type t : sync_data =
@@ -29,10 +27,8 @@ type t : sync_data =
 Lines 1-2, characters 0-48:
 1 | type t : sync_data =
 2 |   { mutable x : int; mutable y : int [@atomic] }
-Error: The kind of type "t" is mutable_data
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of sync_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]
 
 (* Variants: atomic record payloads are sync_data. *)
@@ -47,10 +43,8 @@ type t : sync_data = A of { mutable x : int } | B
 Line 1, characters 0-49:
 1 | type t : sync_data = A of { mutable x : int } | B
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is mutable_data
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of sync_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]
 
 type t : sync_data =
@@ -59,8 +53,6 @@ type t : sync_data =
 Lines 1-2, characters 0-53:
 1 | type t : sync_data =
 2 |   A of { mutable x : int; mutable y : int [@atomic] }
-Error: The kind of type "t" is mutable_data
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of sync_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]

@@ -119,11 +119,8 @@ Error: In this "with" constraint, the new definition of "abstract"
          type 'a abstract = 'a simple
        is not included in
          type 'a abstract : immutable_data with 'a test
-       The kind of the first is immutable_data with 'a
-         because of the definition of simple at line 1, characters 0-39.
-       But the kind of the first must be a subkind of
-           immutable_data with 'a test
-         because of the definition of abstract at line 4, characters 2-48.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 (* When we give open polymorphic variants more precise kinds, we should make sure to give them not-best quality *)
@@ -169,22 +166,16 @@ type ('a, 'b) t : immutable_data with 'a = [< `X | `Y of 'a] as 'b
 Line 1, characters 0-66:
 1 | type ('a, 'b) t : immutable_data with 'a = [< `X | `Y of 'a] as 'b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "[< `X | `Y of 'a ]" is value non_float
-         because it's a polymorphic variant type.
-       But the kind of type "[< `X | `Y of 'a ]" must be a subkind of
-           immutable_data with 'a
-         because of the definition of t at line 1, characters 0-66.
+Error: The mode crossing of type "[< `X | `Y of 'a ]" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 type ('a, 'b) u : immutable_data with 'a = [> `X | `Y of 'a] as 'b
 [%%expect{|
 Line 1, characters 0-66:
 1 | type ('a, 'b) u : immutable_data with 'a = [> `X | `Y of 'a] as 'b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "[> `X | `Y of 'a ]" is value non_float
-         because it's a polymorphic variant type.
-       But the kind of type "[> `X | `Y of 'a ]" must be a subkind of
-           immutable_data with 'a
-         because of the definition of u at line 1, characters 0-66.
+Error: The mode crossing of type "[> `X | `Y of 'a ]" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 (* less-than rows *)
@@ -209,11 +200,8 @@ end
 Line 2, characters 2-83:
 2 |   type 'a t : immutable_data with 'a = private [< `A of 'a | `B of ('a * 'a) | `C ]
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "[< `A of 'a | `B of 'a * 'a | `C ]" is value non_float
-         because it's a polymorphic variant type.
-       But the kind of type "[< `A of 'a | `B of 'a * 'a | `C ]" must be a subkind of
-         immutable_data with 'a
-         because of the definition of t at line 2, characters 2-83.
+Error: The mode crossing of type "[< `A of 'a | `B of 'a * 'a | `C ]" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 (* Tunivar-ified row variables *)
@@ -332,10 +320,8 @@ type t3 : value non_float mod everything with [ `A of string] t1 = C of string  
 Line 1, characters 0-78:
 1 | type t3 : value non_float mod everything with [ `A of string] t1 = C of string  (* should be accepted *)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t3" is immutable_data
-         because it's a boxed variant type.
-       But the kind of type "t3" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t3.
+Error: The mode crossing of type "t3" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness, externality
 |}]
 
 type 'a t1 = [> `A of string | `B of int ] as 'a
@@ -361,10 +347,8 @@ type t3 : value non_float mod everything with [ `A of string | `B of int | `C ] 
 Line 1, characters 0-96:
 1 | type t3 : value non_float mod everything with [ `A of string | `B of int | `C ] t1 = C of string  (* should be accepted *)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t3" is immutable_data
-         because it's a boxed variant type.
-       But the kind of type "t3" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t3.
+Error: The mode crossing of type "t3" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness, externality
 |}]
 
 module type S = sig

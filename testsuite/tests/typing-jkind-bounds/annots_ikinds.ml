@@ -1118,10 +1118,8 @@ type t : value mod global = { x : int}
 Line 1, characters 0-38:
 1 | type t : value mod global = { x : int}
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod global
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness
 |}]
 
 type t : any mod portable = { x : float }
@@ -1155,10 +1153,8 @@ type t : value mod global = { x : t_value }
 Line 1, characters 0-43:
 1 | type t : value mod global = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod global
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
 |}]
 
 type t : value mod aliased = { x : t_value }
@@ -1166,10 +1162,8 @@ type t : value mod aliased = { x : t_value }
 Line 1, characters 0-44:
 1 | type t : value mod aliased = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod aliased
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: uniqueness
 |}]
 
 type t : value mod many = { x : t_value }
@@ -1177,10 +1171,8 @@ type t : value mod many = { x : t_value }
 Line 1, characters 0-41:
 1 | type t : value mod many = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod many
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity
 |}]
 
 type t : value mod portable = { x : t_value }
@@ -1188,10 +1180,8 @@ type t : value mod portable = { x : t_value }
 Line 1, characters 0-45:
 1 | type t : value mod portable = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod portable
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 type t : value mod contended = { x : t_value }
@@ -1199,10 +1189,8 @@ type t : value mod contended = { x : t_value }
 Line 1, characters 0-46:
 1 | type t : value mod contended = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod contended
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]
 
 type t : value mod external_ = { x : t_value }
@@ -1210,10 +1198,8 @@ type t : value mod external_ = { x : t_value }
 Line 1, characters 0-46:
 1 | type t : value mod external_ = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod external_
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: externality
 |}]
 
 (***************************************)
@@ -1236,10 +1222,8 @@ type t : value mod global = Foo of int
 Line 1, characters 0-38:
 1 | type t : value mod global = Foo of int
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of value mod global
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness
 |}]
 
 type t : any mod portable = Foo of float
@@ -1294,10 +1278,8 @@ type t : value mod global = Foo of t_value
 Line 1, characters 0-42:
 1 | type t : value mod global = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of value mod global
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
 |}]
 
 type t : value mod aliased = Foo of t_value
@@ -1305,10 +1287,8 @@ type t : value mod aliased = Foo of t_value
 Line 1, characters 0-43:
 1 | type t : value mod aliased = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of value mod aliased
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: uniqueness
 |}]
 
 type t : value mod many = Foo of t_value
@@ -1316,10 +1296,8 @@ type t : value mod many = Foo of t_value
 Line 1, characters 0-40:
 1 | type t : value mod many = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of value mod many
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity
 |}]
 
 type t : value mod portable = Foo of t_value
@@ -1327,10 +1305,8 @@ type t : value mod portable = Foo of t_value
 Line 1, characters 0-44:
 1 | type t : value mod portable = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of value mod portable
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: portability
 |}]
 
 type t : value mod contended = Foo of t_value
@@ -1338,10 +1314,8 @@ type t : value mod contended = Foo of t_value
 Line 1, characters 0-45:
 1 | type t : value mod contended = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of value mod contended
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]
 
 type t : value mod external_ = Foo of t_value
@@ -1349,10 +1323,8 @@ type t : value mod external_ = Foo of t_value
 Line 1, characters 0-45:
 1 | type t : value mod external_ = Foo of t_value
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with t_value
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of value mod external_
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: externality
 |}]
 
 (***************************************)

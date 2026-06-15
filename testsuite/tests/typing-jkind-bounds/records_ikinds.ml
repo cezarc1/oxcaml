@@ -143,10 +143,8 @@ type 'a t : immutable_data = { x : 'a }
 Line 1, characters 0-39:
 1 | type 'a t : immutable_data = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 type 'a t : immutable_data = { mutable x : 'a }
@@ -154,16 +152,8 @@ type 'a t : immutable_data = { mutable x : 'a }
 Line 1, characters 0-47:
 1 | type 'a t : immutable_data = { mutable x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is mutable_data with 'a @@ forkable unyielding many
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
-
-       The first mode-crosses less than the second along:
-         contention: mod uncontended ≰ mod contended
-         portability: mod portable with 'a ≰ mod portable
-         statefulness: mod stateless with 'a ≰ mod stateless
-         visibility: mod read_write ≰ mod immutable
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, portability, statefulness, visibility
 |}]
 
 type t : immutable_data = { x : int ref }
@@ -171,10 +161,8 @@ type t : immutable_data = { x : int ref }
 Line 1, characters 0-41:
 1 | type t : immutable_data = { x : int ref }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is mutable_data
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, visibility
 |}]
 
 type t : immutable_data = { x : unit -> unit }
@@ -182,10 +170,8 @@ type t : immutable_data = { x : unit -> unit }
 Line 1, characters 0-46:
 1 | type t : immutable_data = { x : unit -> unit }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is value non_float mod immutable
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, portability, forkable, yielding, statefulness
 |}]
 
 type 'a t : immutable_data = { x : 'a option }
@@ -193,10 +179,8 @@ type 'a t : immutable_data = { x : 'a option }
 Line 1, characters 0-46:
 1 | type 'a t : immutable_data = { x : 'a option }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 type t : immutable_data = { x : int; y : int; mutable z : int }
@@ -204,10 +188,8 @@ type t : immutable_data = { x : int; y : int; mutable z : int }
 Line 1, characters 0-63:
 1 | type t : immutable_data = { x : int; y : int; mutable z : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is mutable_data
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, visibility
 |}]
 
 type t : mutable_data = { x : unit -> unit }
@@ -215,10 +197,8 @@ type t : mutable_data = { x : unit -> unit }
 Line 1, characters 0-44:
 1 | type t : mutable_data = { x : unit -> unit }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is value non_float mod immutable
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of mutable_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, portability, forkable, yielding, statefulness
 |}]
 
 type ('a : value mod portable) t : value mod many = { x : 'a }
@@ -226,10 +206,8 @@ type ('a : value mod portable) t : value mod many = { x : 'a }
 Line 1, characters 0-62:
 1 | type ('a : value mod portable) t : value mod many = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod many
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity
 |}]
 
 type ('a : value mod global) t : value mod global = { x : 'a }
@@ -237,10 +215,8 @@ type ('a : value mod global) t : value mod global = { x : 'a }
 Line 1, characters 0-62:
 1 | type ('a : value mod global) t : value mod global = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod global
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness
 |}]
 
 type ('a : value mod aliased) t : value mod aliased = { x : 'a }
@@ -248,10 +224,8 @@ type ('a : value mod aliased) t : value mod aliased = { x : 'a }
 Line 1, characters 0-64:
 1 | type ('a : value mod aliased) t : value mod aliased = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod aliased
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: uniqueness
 |}]
 
 type ('a : value mod external_) t : value mod external_ = { x : 'a }
@@ -259,10 +233,8 @@ type ('a : value mod external_) t : value mod external_ = { x : 'a }
 Line 1, characters 0-68:
 1 | type ('a : value mod external_) t : value mod external_ = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod external_
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: externality
 |}]
 
 type t : sync_data = { mutable x : int ref [@atomic] }
@@ -270,10 +242,8 @@ type t : sync_data = { mutable x : int ref [@atomic] }
 Line 1, characters 0-54:
 1 | type t : sync_data = { mutable x : int ref [@atomic] }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is mutable_data
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of sync_data
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]
 
 type ('a : mutable_data) t : sync_data = { mutable x : 'a [@atomic] }
@@ -281,13 +251,8 @@ type ('a : mutable_data) t : sync_data = { mutable x : 'a [@atomic] }
 Line 1, characters 0-69:
 1 | type ('a : mutable_data) t : sync_data = { mutable x : 'a [@atomic] }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is sync_data with 'a @@ forkable unyielding many
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of sync_data
-         because of the annotation on the declaration of the type t.
-
-       The first mode-crosses less than the second along:
-         contention: mod contended with 'a ≰ mod contended
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention
 |}]
 
 (**** Test 2: Annotations with "with" are accepted when appropriate ****)
@@ -323,14 +288,8 @@ type 'a t : immutable_data with 'a = { mutable x : 'a }
 Line 1, characters 0-55:
 1 | type 'a t : immutable_data with 'a = { mutable x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is mutable_data with 'a @@ forkable unyielding many
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data with 'a
-         because of the annotation on the declaration of the type t.
-
-       The first mode-crosses less than the second along:
-         contention: mod uncontended ≰ mod contended with 'a
-         visibility: mod read_write ≰ mod immutable with 'a
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, visibility
 |}]
 
 type 'a t : immutable_data with 'a = { x : 'a -> 'a }
@@ -338,10 +297,8 @@ type 'a t : immutable_data with 'a = { x : 'a -> 'a }
 Line 1, characters 0-53:
 1 | type 'a t : immutable_data with 'a = { x : 'a -> 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is value non_float mod immutable
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of immutable_data with 'a
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, portability, forkable, yielding, statefulness
 |}]
 
 type 'a t : value mod global with 'a = { x : 'a }
@@ -349,10 +306,8 @@ type 'a t : value mod global with 'a = { x : 'a }
 Line 1, characters 0-49:
 1 | type 'a t : value mod global with 'a = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod global with 'a
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: locality, uniqueness
 |}]
 
 type 'a t : value mod aliased with 'a = { x : 'a }
@@ -360,10 +315,8 @@ type 'a t : value mod aliased with 'a = { x : 'a }
 Line 1, characters 0-50:
 1 | type 'a t : value mod aliased with 'a = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of value mod aliased with 'a
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: uniqueness
 |}]
 
 type 'a t : value mod external_ with 'a = { x : 'a }
@@ -371,11 +324,8 @@ type 'a t : value mod external_ with 'a = { x : 'a }
 Line 1, characters 0-52:
 1 | type 'a t : value mod external_ with 'a = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a
-         because it's a boxed record type.
-       But the kind of type "t" must be a subkind of
-           value mod external_ with 'a
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: externality
 |}]
 
 (**** Test 3: Record values cross when appropriate ****)
@@ -936,10 +886,8 @@ Error: Signature mismatch:
          type t = { mutable x : int; y : string; }
        is not included in
          type t : immutable_data
-       The kind of the first is mutable_data
-         because of the definition of t at line 4, characters 2-42.
-       But the kind of the first must be a subkind of immutable_data
-         because of the definition of t at line 2, characters 2-25.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, visibility
 |}]
 
 module M : sig
@@ -962,10 +910,8 @@ Error: Signature mismatch:
          type t = { x : int ref; y : string; }
        is not included in
          type t : immutable_data
-       The kind of the first is mutable_data
-         because of the definition of t at line 4, characters 2-38.
-       But the kind of the first must be a subkind of immutable_data
-         because of the definition of t at line 2, characters 2-25.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: contention, visibility
 |}]
 
 module M : sig
@@ -988,10 +934,8 @@ Error: Signature mismatch:
          type 'a t = { x : 'a; y : string; }
        is not included in
          type 'a t : immutable_data
-       The kind of the first is immutable_data with 'a
-         because of the definition of t at line 4, characters 2-36.
-       But the kind of the first must be a subkind of immutable_data
-         because of the definition of t at line 2, characters 2-28.
+       The mode crossing of the first is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 module M : sig

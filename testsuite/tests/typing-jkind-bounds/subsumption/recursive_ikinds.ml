@@ -70,10 +70,8 @@ end = My_list
 Line 2, characters 2-70:
 2 |   type 'a t : immutable_data with 'a = Nil | Cons of 'a * 'a My_list.t
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: The kind of type "t" is immutable_data with 'a with 'a My_list.t
-         because it's a boxed variant type.
-       But the kind of type "t" must be a subkind of immutable_data with 'a
-         because of the annotation on the declaration of the type t.
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 module rec My_list : sig
@@ -84,7 +82,11 @@ module My_list = struct
 end
 [%%expect {|
 module rec My_list : sig type 'a t = Nil | Cons of 'a * 'a My_list.t end
-module My_list : sig type 'a t = 'a My_list.t end
+Line 5, characters 2-51:
+5 |   type 'a t : immutable_data with 'a = 'a My_list.t
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: The mode crossing of type "'a My_list.t" is not allowed here.
+       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
 |}]
 
 type my_int_list : immutable_data = Nil | Cons of int * my_int_list
