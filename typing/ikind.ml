@@ -59,7 +59,6 @@ module Provenance = struct
     |> register_text
 
   let reset () =
-    next_id := 0;
     Hashtbl.clear by_id;
     names := []
 
