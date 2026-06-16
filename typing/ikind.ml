@@ -1015,6 +1015,124 @@ let make_gadt_payload_projector ~(decl_params : Types.type_expr list)
         failwith
           "ikind: expected GADT constructor result to be a type constructor")
 
+let type_decl_allows_any_crossing (decl : Types.type_declaration) =
+  match decl.type_kind with
+  | Types.Type_record (_, _, umc_opt)
+  | Types.Type_record_unboxed_product (_, _, umc_opt)
+  | Types.Type_variant (_, _, umc_opt) ->
+    Option.is_some umc_opt
+  | Types.Type_abstract _ | Types.Type_open -> false
+
+let type_decl_rhs_kind_poly (ctx : Solver.ctx)
+    (decl : Types.type_declaration) : Ldd.node =
+  match decl.type_manifest with
+  | Some body_ty ->
+    Solver.kind ~use_tables:true ctx body_ty
+  | None ->
+    let use_decl_jkind () = Solver.ckind_of_jkind ctx decl.type_jkind in
+    match decl.type_kind with
+    (* For abstract types and allow_any_crossing types, derive the ikind from
+       the jkind annotation instead of computing it from the type declaration's
+       body. *)
+    | _ when type_decl_allows_any_crossing decl -> use_decl_jkind ()
+    | Types.Type_abstract _ | Types.Type_open -> use_decl_jkind ()
+    | Types.Type_record (lbls, rep, _umc_opt) ->
+      let base =
+        Ldd.const
+          (match rep with
+          | Types.Record_unboxed -> Axis_lattice.immediate
+          (* CR box: This will no longer be [non_float] once we update the
+             representation of singleton float64 records *)
+          | _ -> Axis_lattice.immutable_data)
+        |> decl_base_provenance ctx "this record type"
+      in
+      sum_record_label_contributions
+        ~base
+        ~payload_kind:(fun ty -> Solver.kind ~use_tables:true ctx ty)
+        ~label_mutability_provenance:(label_mutability_provenance ctx)
+        ~validate_label:no_validation lbls
+    | Types.Type_record_unboxed_product (lbls, _rep, _umc_opt) ->
+      let base =
+        Ldd.const Axis_lattice.immediate
+        |> decl_base_provenance ctx "this unboxed record type"
+      in
+      sum_record_label_contributions
+        ~base
+        ~payload_kind:(fun ty -> Solver.kind ~use_tables:true ctx ty)
+        ~label_mutability_provenance:(label_mutability_provenance ctx)
+        ~validate_label:validate_immutable_unboxed_label lbls
+    | Types.Type_variant (_cstrs, Types.Variant_with_null, _umc_opt) ->
+      (* [Variant_with_null] (i.e. [or_null]) has semantics that are not
+         captured by its constructors: nullability/separability and
+         mode-crossing are baked into its representation. We defer to jkinds
+         because ikinds cannot express this today. This deferral can be removed
+         once separability and nullability become layout properties rather than
+         modal axes. *)
+      use_decl_jkind ()
+    | Types.Type_variant (cstrs, rep, _umc_opt) ->
+      (* Choose base: immediate for void-only variants; otherwise immutable. *)
+      let all_args_void =
+        List.for_all
+          (fun (c : Types.constructor_declaration) ->
+            match c.cd_args with
+            | Types.Cstr_tuple args ->
+              List.for_all
+                (fun (arg : Types.constructor_argument) ->
+                  match arg.ca_sort with
+                  | Some sort -> Jkind_types.Sort.Const.all_void sort
+                  | None -> false)
+                args
+            | Types.Cstr_record lbls ->
+              List.for_all
+                (fun (lbl : Types.label_declaration) ->
+                  match lbl.ld_sort with
+                  | Some sort -> Jkind_types.Sort.Const.all_void sort
+                  | None -> false)
+                lbls)
+          cstrs
+      in
+      let base =
+        let base_lat =
+          match rep with
+          | Types.Variant_unboxed -> Axis_lattice.immediate
+          | _ ->
+            if all_args_void
+            then Axis_lattice.immediate
+            else Axis_lattice.immutable_data
+        in
+        Ldd.const base_lat |> decl_base_provenance ctx "this variant type"
+      in
+      let payload_kind_of_constructor =
+        make_gadt_payload_projector ~decl_params:decl.type_params ctx
+      in
+      let constructor_contrib (c : Types.constructor_declaration) =
+        let payload_kind = payload_kind_of_constructor c in
+        match c.cd_args with
+        | Types.Cstr_tuple args ->
+          Ldd.sum args
+            ~base:Ldd.bot
+            ~f:(fun (arg : Types.constructor_argument) ->
+              let mask = Axis_lattice.mask_of_modality arg.ca_modalities in
+              Ldd.meet (Ldd.const mask) (payload_kind arg.ca_type))
+        | Types.Cstr_record lbls ->
+          sum_record_label_contributions
+            ~base:Ldd.bot
+            ~payload_kind
+            ~label_mutability_provenance:(label_mutability_provenance ctx)
+            ~validate_label:no_validation lbls
+      in
+      Ldd.sum cstrs ~base ~f:constructor_contrib
+
+let type_decl_constr_decl (decl : Types.type_declaration) :
+    Solver.constr_decl =
+  let abstract =
+    match decl.type_manifest, decl.type_kind with
+    | None, Types.Type_abstract _ -> not (Jkind.is_best decl.type_jkind)
+    | _ -> false
+  in
+  let kind ctx = type_decl_rhs_kind_poly ctx decl in
+  Solver.Ty { args = decl.type_params; kind; abstract }
+
 (* Lookup function supplied to the solver.
    We prefer a stored ikind (when present) and otherwise recompute from the
    type declaration in [env]. *)
@@ -1035,144 +1153,9 @@ let lookup_of_env ~(env : Env.t) (path : Path.t) : Solver.constr_decl =
   | type_decl ->
     (* Here we can switch to using the cached ikind or not. *)
     let fallback () =
-      (* When we have no stored ikind, we go to this fallback and compute. *)
-      match type_decl.type_manifest with
-      | Some body_ty ->
-        (* Concrete: compute kind of body. *)
-        let args = type_decl.type_params in
-        let kind : Solver.ckind =
-         fun ctx -> Solver.kind ~use_tables:true ctx body_ty
-        in
-        Solver.Ty { args; kind; abstract = false }
-      | None -> (
-        (* No manifest: may still be "concrete" (record/variant/...).
-           Build ckind. *)
-        let allow_any_crossing =
-          match type_decl.type_kind with
-          | Types.Type_record (_, _, umc_opt)
-          | Types.Type_record_unboxed_product (_, _, umc_opt)
-          | Types.Type_variant (_, _, umc_opt) ->
-            Option.is_some umc_opt
-          | Types.Type_abstract _ | Types.Type_open -> false
-        in
-        let use_decl_jkind ~treat_as_abstract =
-          let kind : Solver.ckind =
-           fun ctx -> Solver.ckind_of_jkind ctx type_decl.type_jkind
-          in
-          Solver.Ty
-            { args = type_decl.type_params; kind; abstract = treat_as_abstract }
-        in
-        match type_decl.type_kind with
-        (* For abstract types and allow_any_crossing types, we derive the
-           ikind from the jkind annotation, instead of computing it from
-           the type declaration's body: *)
-        | _ when allow_any_crossing -> use_decl_jkind ~treat_as_abstract:false
-        | Types.Type_abstract _ ->
-          use_decl_jkind
-            ~treat_as_abstract:(not (Jkind.is_best type_decl.type_jkind))
-        (* For other cases, we compute the ikind from the type definition{} *)
-        | Types.Type_record (lbls, rep, _umc_opt) ->
-          (* Build from components: base (non-float value) + per-label
-             contributions. *)
-          let immutable_base =
-            Ldd.const
-              (match rep with
-              | Types.Record_unboxed -> Axis_lattice.immediate
-              (* CR box: This will no longer be [non_float] once we update the
-                 representation of singleton float64 records *)
-              | _ -> Axis_lattice.immutable_data)
-          in
-          let kind : Solver.ckind =
-           fun (ctx : Solver.ctx) ->
-            sum_record_label_contributions ~base:immutable_base
-              ~payload_kind:(fun ty -> Solver.kind ~use_tables:true ctx ty)
-              ~validate_label:no_validation lbls
-          in
-          Solver.Ty { args = type_decl.type_params; kind; abstract = false }
-        | Types.Type_record_unboxed_product (lbls, _rep, _umc_opt) ->
-          let kind : Solver.ckind =
-           fun (ctx : Solver.ctx) ->
-            let base = Ldd.const Axis_lattice.immediate in
-            sum_record_label_contributions ~base
-              ~payload_kind:(fun ty -> Solver.kind ~use_tables:true ctx ty)
-              ~validate_label:validate_immutable_unboxed_label lbls
-          in
-          Solver.Ty { args = type_decl.type_params; kind; abstract = false }
-        | Types.Type_variant (_cstrs, Types.Variant_with_null, _umc_opt) ->
-          (* [Variant_with_null] (i.e. [or_null]) has semantics that are not
-             captured by its constructors: nullability/separability and
-             mode-crossing are baked into its representation. We defer to
-             jkinds because ikinds cannot express this today. This deferral
-             can be removed once separability and nullability become layout
-             properties rather than modal axes. *)
-          use_decl_jkind ~treat_as_abstract:false
-        | Types.Type_variant (cstrs, rep, _umc_opt) ->
-          (* Choose base: immediate for void-only variants; sync if any record
-             field is atomic; mutable if any non-atomic mutable field appears;
-             otherwise immutable. *)
-          let all_args_void =
-            List.for_all
-              (fun (c : Types.constructor_declaration) ->
-                match c.cd_args with
-                | Types.Cstr_tuple args ->
-                  List.for_all
-                    (fun (arg : Types.constructor_argument) ->
-                      match arg.ca_sort with
-                      | Some sort -> Jkind_types.Sort.Const.all_void sort
-                      | None -> false)
-                    args
-                | Types.Cstr_record lbls ->
-                  List.for_all
-                    (fun (lbl : Types.label_declaration) ->
-                      match lbl.ld_sort with
-                      | Some sort -> Jkind_types.Sort.Const.all_void sort
-                      | None -> false)
-                    lbls)
-              cstrs
-          in
-          let kind : Solver.ckind =
-           fun (ctx : Solver.ctx) ->
-            let base_lat0 =
-              match rep with
-              | Types.Variant_unboxed -> Axis_lattice.immediate
-              | _ ->
-                if all_args_void
-                then Axis_lattice.immediate
-                else Axis_lattice.immutable_data
-            in
-            let payload_kind_of_constructor =
-              make_gadt_payload_projector ~decl_params:type_decl.type_params ctx
-            in
-            let constructor_contrib (c : Types.constructor_declaration) =
-              let payload_kind = payload_kind_of_constructor c in
-              match c.cd_args with
-              | Types.Cstr_tuple args ->
-                Ldd.sum args ~base:Ldd.bot
-                  ~f:(fun (arg : Types.constructor_argument) ->
-                    let mask =
-                      Axis_lattice.mask_of_modality arg.ca_modalities
-                    in
-                    Ldd.meet (Ldd.const mask) (payload_kind arg.ca_type))
-              | Types.Cstr_record lbls ->
-                sum_record_label_contributions ~base:Ldd.bot ~payload_kind
-                  ~validate_label:no_validation lbls
-            in
-            Ldd.sum cstrs ~base:(Ldd.const base_lat0) ~f:constructor_contrib
-          in
-          Solver.Ty { args = type_decl.type_params; kind; abstract = false }
-        | Types.Type_open ->
-          (* Use the stored jkind here in case it is `exn`,
-             which is special. *)
-          use_decl_jkind ~treat_as_abstract:false
-        (*
-           (* This is the code we'd use otherwise *)
-           let kind : Solver.ckind =
-            fun _ctx ->
-             Ldd.const Axis_lattice.nonfloat_value
-           in
-           Solver.Ty { args = type_decl.type_params; kind; abstract = false }
-        *)
-        )
+      (* When we have no stored ikind, compute from the declaration through the
+         same RHS builder used for bound diagnostics. *)
+      type_decl_constr_decl type_decl
     in
     (* Prefer a stored constructor ikind if one is present and enabled. *)
     let ikind =
@@ -1368,103 +1351,6 @@ let compute_type_expr_bound_polys env ~(ty : Types.type_expr)
       rhs_for_leq = super_poly;
       fast_path = No_fast_path
     }
-
-let type_decl_rhs_kind_poly (ctx : Solver.ctx)
-    (decl : Types.type_declaration) : Ldd.node =
-  match decl.type_manifest with
-  | Some body_ty ->
-    Solver.kind ~use_tables:true ctx body_ty
-  | None ->
-    let allow_any_crossing =
-      match decl.type_kind with
-      | Types.Type_record (_, _, umc_opt)
-      | Types.Type_record_unboxed_product (_, _, umc_opt)
-      | Types.Type_variant (_, _, umc_opt) ->
-        Option.is_some umc_opt
-      | Types.Type_abstract _ | Types.Type_open -> false
-    in
-    let use_decl_jkind () = Solver.ckind_of_jkind ctx decl.type_jkind in
-    match decl.type_kind with
-    | _ when allow_any_crossing -> use_decl_jkind ()
-    | Types.Type_abstract _ | Types.Type_open -> use_decl_jkind ()
-    | Types.Type_record (lbls, rep, _umc_opt) ->
-      let base =
-        Ldd.const
-          (match rep with
-          | Types.Record_unboxed -> Axis_lattice.immediate
-          | _ -> Axis_lattice.immutable_data)
-        |> decl_base_provenance ctx "this record type"
-      in
-      sum_record_label_contributions
-        ~base
-        ~payload_kind:(fun ty -> Solver.kind ~use_tables:true ctx ty)
-        ~label_mutability_provenance:(label_mutability_provenance ctx)
-        ~validate_label:no_validation lbls
-    | Types.Type_record_unboxed_product (lbls, _rep, _umc_opt) ->
-      let base =
-        Ldd.const Axis_lattice.immediate
-        |> decl_base_provenance ctx "this unboxed record type"
-      in
-      sum_record_label_contributions
-        ~base
-        ~payload_kind:(fun ty -> Solver.kind ~use_tables:true ctx ty)
-        ~label_mutability_provenance:(label_mutability_provenance ctx)
-        ~validate_label:validate_immutable_unboxed_label lbls
-    | Types.Type_variant (_cstrs, Types.Variant_with_null, _umc_opt) ->
-      (* See the corresponding case in [lookup_of_env]. *)
-      use_decl_jkind ()
-    | Types.Type_variant (cstrs, rep, _umc_opt) ->
-      let all_args_void =
-        List.for_all
-          (fun (c : Types.constructor_declaration) ->
-            match c.cd_args with
-            | Types.Cstr_tuple args ->
-              List.for_all
-                (fun (arg : Types.constructor_argument) ->
-                  match arg.ca_sort with
-                  | Some sort -> Jkind_types.Sort.Const.all_void sort
-                  | None -> false)
-                args
-            | Types.Cstr_record lbls ->
-              List.for_all
-                (fun (lbl : Types.label_declaration) ->
-                  match lbl.ld_sort with
-                  | Some sort -> Jkind_types.Sort.Const.all_void sort
-                  | None -> false)
-                lbls)
-          cstrs
-      in
-      let base =
-        let base_lat =
-          match rep with
-          | Types.Variant_unboxed -> Axis_lattice.immediate
-          | _ ->
-            if all_args_void
-            then Axis_lattice.immediate
-            else Axis_lattice.immutable_data
-        in
-        Ldd.const base_lat |> decl_base_provenance ctx "this variant type"
-      in
-      let payload_kind_of_constructor =
-        make_gadt_payload_projector ~decl_params:decl.type_params ctx
-      in
-      let constructor_contrib (c : Types.constructor_declaration) =
-        let payload_kind = payload_kind_of_constructor c in
-        match c.cd_args with
-        | Types.Cstr_tuple args ->
-          Ldd.sum args
-            ~base:Ldd.bot
-            ~f:(fun (arg : Types.constructor_argument) ->
-              let mask = Axis_lattice.mask_of_modality arg.ca_modalities in
-              Ldd.meet (Ldd.const mask) (payload_kind arg.ca_type))
-        | Types.Cstr_record lbls ->
-          sum_record_label_contributions
-            ~base:Ldd.bot
-            ~payload_kind
-            ~label_mutability_provenance:(label_mutability_provenance ctx)
-            ~validate_label:no_validation lbls
-      in
-      Ldd.sum cstrs ~base ~f:constructor_contrib
 
 let compute_type_decl_bound_polys env ~(decl : Types.type_declaration)
     (bound : Types.jkind_l) : subcheck_polys =
