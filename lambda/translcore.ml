@@ -2751,7 +2751,7 @@ and transl_handler ~scopes ~return_sort ~body_sort e body
          ~params:[mk_param param Lambda.debug_uid_none body_layout]
          ~return:return_layout ~body:(Lvar param)
          ~attr:default_function_attribute ~loc:Loc_unknown
-         ~mode:alloc_heap ~ret_mode:alloc_heap
+         ~mode:alloc_heap ~ret_mode:not_alloc_stack
     | Some (val_caselist, partial) ->
         let val_cases = transl_cases ~scopes return_sort val_caselist in
         let param, param_duid = Typecore.name_cases "param" val_caselist in
@@ -2764,7 +2764,7 @@ and transl_handler ~scopes ~return_sort ~body_sort e body
         lfunction ~kind:(Curried {nlocal=0})
           ~params:[mk_param param param_duid body_layout]
           ~return:return_layout ~attr:default_function_attribute
-          ~loc:Loc_unknown ~body ~mode:alloc_heap ~ret_mode:alloc_heap
+          ~loc:Loc_unknown ~body ~mode:alloc_heap ~ret_mode:not_alloc_stack
   in
   let exn_fun =
     let exn_cases = transl_cases ~scopes return_sort exn_caselist in
@@ -2777,7 +2777,7 @@ and transl_handler ~scopes ~return_sort ~body_sort e body
     lfunction ~kind:(Curried {nlocal=0})
       ~params:[mk_param param param_duid layout_exception] ~return:return_layout
       ~attr:default_function_attribute ~loc:Loc_unknown ~body
-      ~mode:alloc_heap ~ret_mode:alloc_heap
+      ~mode:alloc_heap ~ret_mode:not_alloc_stack
   in
   let eff_fun =
     let param, param_duid = Typecore.name_cases "eff" eff_caselist in
@@ -2794,7 +2794,7 @@ and transl_handler ~scopes ~return_sort ~body_sort e body
                mk_param cont Lambda.debug_uid_none Lambda.layout_function;
                mk_param cont_tail Lambda.debug_uid_none Lambda.layout_function]
       ~return:return_layout ~attr:default_function_attribute ~loc:Loc_unknown
-      ~body ~mode:alloc_heap ~ret_mode:alloc_heap
+      ~body ~mode:alloc_heap ~ret_mode:not_alloc_stack
   in
   (* Upstream decomposes [body] into [f x] when it is an application, avoiding
      the thunk. We always use the thunk path because we cannot verify that the
@@ -2808,7 +2808,7 @@ and transl_handler ~scopes ~return_sort ~body_sort e body
        ~params:[mk_param param Lambda.debug_uid_none Lambda.layout_int]
        ~return:body_layout
        ~attr:default_function_attribute ~loc:Loc_unknown
-       ~body ~mode:alloc_heap ~ret_mode:alloc_heap,
+       ~body ~mode:alloc_heap ~ret_mode:not_alloc_stack,
      Lconst(Const_base(Const_int 0)))
   in
   Lprim(Pwith_stack, [val_fun; exn_fun; eff_fun; body_fun; arg],
