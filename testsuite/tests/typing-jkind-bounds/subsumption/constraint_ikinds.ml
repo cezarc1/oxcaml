@@ -109,8 +109,10 @@ Error: Signature mismatch:
        is not included in
          type ('b : value mod portable contended, 'a) t : value mod many
            constraint 'a = 'b
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity
+       The kind of the first is value mod portable contended
+         because of the definition of t at line 2, characters 2-96.
+       But the kind of the first must be a subkind of value mod many
+         because of the definition of t at line 2, characters 2-96.
 |}]
 
 module M : sig
@@ -142,8 +144,15 @@ Error: Signature mismatch:
          type 'a t = Foo of 'a constraint 'a = 'b ref
        is not included in
          type 'a t : immutable_data with 'b constraint 'a = 'b ref
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+       The kind of the first is
+           mutable_data with 'b @@ forkable unyielding many
+         because of the definition of t at line 4, characters 2-46.
+       But the kind of the first must be a subkind of immutable_data with 'b
+         because of the definition of t at line 2, characters 2-59.
+
+       The first mode-crosses less than the second along:
+         contention: mod uncontended ≰ mod contended with 'b
+         visibility: mod read_write ≰ mod immutable with 'b
 |}]
 
 module M : sig
@@ -193,6 +202,8 @@ Error: Signature mismatch:
          type 'a t = Foo of 'a constraint 'a = 'b list
        is not included in
          type 'a t : immutable_data constraint 'a = 'b list
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+       The kind of the first is immutable_data with 'b
+         because of the definition of t at line 4, characters 2-64.
+       But the kind of the first must be a subkind of immutable_data
+         because of the definition of t at line 2, characters 2-69.
 |}]

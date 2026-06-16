@@ -31,8 +31,14 @@ Error: Signature mismatch:
          type ('a, 'b) t : immutable_data with 'a
        is not included in
          type ('a, 'b) t : immutable_data with 'a @@ portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is immutable_data with 'a
+         because of the definition of t at line 4, characters 2-42.
+       But the kind of the first must be a subkind of
+           immutable_data with 'a @@ portable
+         because of the definition of t at line 2, characters 2-54.
+
+       The first mode-crosses less than the second along:
+         portability: mod portable with 'a ≰ mod portable
 |}]
 
 module M : sig
@@ -149,8 +155,10 @@ Error: In this "with" constraint, the new definition of "t"
          type ('a, 'b) t = ('a, 'b) t
        is not included in
          type ('a, 'b) t : value mod portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value mod portable with 'b
+         because of the definition of t at line 1, characters 0-77.
+       But the kind of the first must be a subkind of value mod portable
+         because of the definition of t at line 4, characters 2-38.
 |}]
 
 module M : sig
@@ -190,8 +198,14 @@ Error: Signature mismatch:
          type 'a t : immutable_data with 'a
        is not included in
          type 'a t : immutable_data with 'a @@ portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is immutable_data with 'a
+         because of the definition of t at line 4, characters 2-56.
+       But the kind of the first must be a subkind of
+           immutable_data with 'a @@ portable
+         because of the definition of t at line 2, characters 2-48.
+
+       The first mode-crosses less than the second along:
+         portability: mod portable with 'a ≰ mod portable
 |}]
 
 module M : sig
@@ -213,8 +227,14 @@ Error: Signature mismatch:
          type 'a t : immutable_data with 'a
        is not included in
          type 'a t : immutable_data with 'a @@ portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is immutable_data with 'a
+         because of the definition of t at line 4, characters 2-56.
+       But the kind of the first must be a subkind of
+           immutable_data with 'a @@ portable
+         because of the definition of t at line 2, characters 2-48.
+
+       The first mode-crosses less than the second along:
+         portability: mod portable with 'a ≰ mod portable
 |}]
 
 module M : sig
@@ -258,8 +278,15 @@ Error: Signature mismatch:
          type 'a t : immutable_data with 'a
        is not included in
          type 'a t : immutable_data with 'a @@ portable contended
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, portability
+       The kind of the first is immutable_data with 'a
+         because of the definition of t at line 4, characters 2-69.
+       But the kind of the first must be a subkind of
+           immutable_data with 'a @@ portable contended
+         because of the definition of t at line 2, characters 2-58.
+
+       The first mode-crosses less than the second along:
+         contention: mod contended with 'a ≰ mod contended
+         portability: mod portable with 'a ≰ mod portable
 |}]
 
 module M : sig
@@ -314,8 +341,16 @@ Error: Signature mismatch:
        is not included in
          type ('a, 'b) t
            : immutable_data with 'a @@ portable with 'b @@ contended
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, portability
+       The kind of the first is
+           immutable_data with 'a @@ contended with 'b @@ portable
+         because of the definition of t at line 4, characters 2-75.
+       But the kind of the first must be a subkind of
+           immutable_data with 'a @@ portable with 'b @@ contended
+         because of the definition of t at line 2, characters 2-75.
+
+       The first mode-crosses less than the second along:
+         contention: mod contended with 'b ≰ mod contended with 'a
+         portability: mod portable with 'a ≰ mod portable with 'b
 |}]
 
 module M : sig

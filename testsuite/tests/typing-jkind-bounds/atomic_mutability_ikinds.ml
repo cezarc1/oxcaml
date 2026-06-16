@@ -11,6 +11,16 @@ type t : sync_data =
 type t = { mutable x : int [@atomic]; mutable y : int [@atomic]; }
 |}]
 
+(* Records: atomic fields are not immutable_data. *)
+type t : immutable_data = { mutable x : int [@atomic] }
+[%%expect {|
+Line 1, characters 0-55:
+1 | type t : immutable_data = { mutable x : int [@atomic] }
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because mutable field x : int [@atomic] does not cross visibility.
+|}]
+
 (* Records: any non-atomic mutable field is not sync_data. *)
 type t : sync_data = { mutable x : int }
 [%%expect {|

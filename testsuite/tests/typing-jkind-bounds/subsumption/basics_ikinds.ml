@@ -49,8 +49,10 @@ Error: Signature mismatch:
          type t : immutable_data non_pointer
        is not included in
          type t : immediate
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, externality
+       The kind of the first is immutable_data non_pointer
+         because of the definition of t at line 4, characters 2-32.
+       But the kind of the first must be a subkind of immediate
+         because of the definition of t at line 2, characters 2-20.
 |}]
 
 module M : sig
@@ -110,8 +112,10 @@ Error: Signature mismatch:
          type ('a, 'b) t : immutable_data with 'a with 'b
        is not included in
          type ('a, 'b) t : immutable_data with 'a
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+       The kind of the first is immutable_data with 'a with 'b
+         because of the definition of t at line 4, characters 2-50.
+       But the kind of the first must be a subkind of immutable_data with 'a
+         because of the definition of t at line 2, characters 2-42.
 |}]
 
 type ('a, 'b) u : immutable_data with 'b with 'a
@@ -122,7 +126,8 @@ Line 2, characters 0-53:
 2 | type ('a, 'b) t : immutable_data with 'a = ('a, 'b) u
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'b does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
+       because 'b does not cross linearity, contention, portability,
+                 forkable, yielding, statefulness, and visibility.
 |}]
 
 type ('a, 'b) t : immutable_data with 'a with 'b
@@ -144,8 +149,10 @@ Error: In this "with" constraint, the new definition of "t"
          type ('a, 'b) t = ('a, 'b) t
        is not included in
          type ('a, 'b) t : immutable_data with 'a
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+       The kind of the first is immutable_data with 'a with 'b
+         because of the definition of t at line 1, characters 0-48.
+       But the kind of the first must be a subkind of immutable_data with 'a
+         because of the definition of t at line 4, characters 2-42.
 |}]
 
 module M : sig
@@ -177,8 +184,16 @@ Error: Signature mismatch:
          type 'a t : mutable_data with 'a
        is not included in
          type 'a t : mutable_data with 'a @@ forkable unyielding many
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, forkable, yielding
+       The kind of the first is mutable_data with 'a
+         because of the definition of t at line 4, characters 2-34.
+       But the kind of the first must be a subkind of
+           mutable_data with 'a @@ forkable unyielding many
+         because of the definition of t at line 2, characters 2-40.
+
+       The first mode-crosses less than the second along:
+         linearity: mod many with 'a ≰ mod many
+         forkable: mod forkable with 'a ≰ mod forkable
+         yielding: mod unyielding with 'a ≰ mod unyielding
 |}]
 
 module M : sig
@@ -456,8 +471,11 @@ Error: Signature mismatch:
          type 'a t = 'a t2 t1 * unit t1
        is not included in
          type 'a t : immutable_data with 'a t1 t2 with unit t2
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+       The kind of the first is immutable_data with 'a t2 t1 with unit t1
+         because it's a tuple type.
+       But the kind of the first must be a subkind of
+           immutable_data with 'a t1 t2 with unit t2
+         because of the definition of t at line 4, characters 2-52.
 |}]
 
 (* Ben Peters' example failing version 2 *)

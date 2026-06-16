@@ -106,6 +106,8 @@ Error: Signature mismatch:
          type t = X.t
        is not included in
          type t : value mod portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value
+         because of the definition of t at line 1, characters 19-33.
+       But the kind of the first must be a subkind of value mod portable
+         because of the definition of t at line 1, characters 45-72.
 |}]

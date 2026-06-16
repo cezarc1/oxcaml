@@ -1016,7 +1016,8 @@ Line 2, characters 0-53:
 2 | type 'a t : immutable_data = 'a u = Foo of { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
+       because 'a does not cross linearity, contention, portability,
+                 forkable, yielding, statefulness, and visibility.
 |}]
 
 (**********************************)

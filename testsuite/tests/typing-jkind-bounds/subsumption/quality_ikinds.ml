@@ -55,8 +55,11 @@ Error: Signature mismatch:
          type t
        is not included in
          type t : value mod portable with a
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value
+         because of the definition of t at line 6, characters 2-8.
+       But the kind of the first must be a subkind of
+           value mod portable with a
+         because of the definition of t at line 3, characters 2-36.
 |}]
 
 (* This test demonstrates why the above shouldn't be accepted. We can learn more about
@@ -119,8 +122,11 @@ Error: In this "with" constraint, the new definition of "t"
          type t = t
        is not included in
          type t : value mod global with M.t
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
+       The kind of the first is value
+         because of the definition of t at line 5, characters 2-8.
+       But the kind of the first must be a subkind of
+           value mod global with M.t
+         because of the definition of t at line 3, characters 4-38.
 |}]
 
 module type S = sig
@@ -154,8 +160,11 @@ Error: Signature mismatch:
          type t : value mod portable
        is not included in
          type t : value mod portable contended with M.t
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+       The kind of the first is value mod portable
+         because of the definition of t at line 13, characters 2-29.
+       But the kind of the first must be a subkind of
+           value mod portable contended with M.t
+         because of the definition of t at line 11, characters 2-48.
 |}]
 
 module type S = sig
@@ -191,8 +200,11 @@ Error: Signature mismatch:
          type t : value mod portable
        is not included in
          type t : value mod portable contended with M.u
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention
+       The kind of the first is value mod portable
+         because of the definition of t at line 15, characters 2-29.
+       But the kind of the first must be a subkind of
+           value mod portable contended with M.u
+         because of the definition of t at line 13, characters 2-48.
 |}]
 
 module M : sig
@@ -221,8 +233,11 @@ Error: Signature mismatch:
          type t
        is not included in
          type t : value mod forkable unyielding
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: forkable, yielding
+       The kind of the first is value
+         because of the definition of t at line 6, characters 2-8.
+       But the kind of the first must be a subkind of
+           value mod forkable unyielding
+         because of the definition of t at line 3, characters 2-34.
 |}]
 
 module M : sig
@@ -255,8 +270,11 @@ Error: Signature mismatch:
        is not included in
          type 'a t : value mod global with [< `a of string | `b ] u
            constraint 'a = [< `a of string | `b ]
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
+       The kind of the first is value
+         because of the definition of t at line 6, characters 2-49.
+       But the kind of the first must be a subkind of
+           value mod global with [< `a of string | `b ] u
+         because of the definition of t at line 3, characters 2-40.
 |}]
 
 module M : sig
@@ -289,8 +307,11 @@ Error: Signature mismatch:
        is not included in
          type 'a t : value mod portable with [< `a of int -> int | `b ] u
            constraint 'a = [< `a of int -> int | `b ]
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value
+         because of the definition of t at line 6, characters 2-55.
+       But the kind of the first must be a subkind of
+           value mod portable with [< `a of int -> int | `b ] u
+         because of the definition of t at line 3, characters 2-42.
 |}]
 
 module M : sig
@@ -323,8 +344,11 @@ Error: Signature mismatch:
        is not included in
          type 'a t : value mod portable with [> `a of string | `b ] u
            constraint 'a = [> `a of string | `b ]
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value
+         because of the definition of t at line 6, characters 2-49.
+       But the kind of the first must be a subkind of
+           value mod portable with [> `a of string | `b ] u
+         because of the definition of t at line 3, characters 2-42.
 |}]
 
 module M : sig
@@ -350,8 +374,10 @@ Error: Signature mismatch:
          type t
        is not included in
          type t : value mod global with a
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: locality, uniqueness, forkable, yielding
+       The kind of the first is value
+         because of the definition of t at line 6, characters 2-8.
+       But the kind of the first must be a subkind of value mod global with a
+         because of the definition of t at line 3, characters 2-34.
 |}]
 
 type gadt = Foo : int -> gadt
@@ -386,8 +412,11 @@ Error: Signature mismatch:
          type t
        is not included in
          type t : value mod forkable unyielding
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: forkable, yielding
+       The kind of the first is value
+         because of the definition of t at line 5, characters 2-8.
+       But the kind of the first must be a subkind of
+           value mod forkable unyielding
+         because of the definition of t at line 3, characters 2-37.
 |}]
 
 type gadt = Foo : int -> gadt [@@unboxed]
@@ -411,8 +440,10 @@ Error: Signature mismatch:
          type t
        is not included in
          type t : value mod portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value
+         because of the definition of t at line 5, characters 2-8.
+       But the kind of the first must be a subkind of value mod portable
+         because of the definition of t at line 3, characters 2-39.
 |}]
 
 module M : sig
@@ -508,8 +539,11 @@ Error: Signature mismatch:
          type t
        is not included in
          type t : value mod portable with s
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value
+         because of the definition of t at line 8, characters 2-8.
+       But the kind of the first must be a subkind of
+           value mod portable with s
+         because of the definition of t at line 6, characters 2-36.
 |}]
 
 type a : value = private int
@@ -533,8 +567,10 @@ Error: Signature mismatch:
          type t
        is not included in
          type t : value mod portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value
+         because of the definition of t at line 5, characters 2-8.
+       But the kind of the first must be a subkind of value mod portable
+         because of the definition of t at line 3, characters 2-36.
 |}]
 
 type a : value mod many = private string
@@ -558,8 +594,10 @@ Error: Signature mismatch:
          type t : value mod many
        is not included in
          type t : value mod many portable
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: portability
+       The kind of the first is value mod many
+         because of the definition of t at line 5, characters 2-25.
+       But the kind of the first must be a subkind of value mod many portable
+         because of the definition of t at line 3, characters 2-41.
 |}]
 
 type a = { foo : int -> int }

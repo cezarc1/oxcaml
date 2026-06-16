@@ -152,8 +152,11 @@ Lines 1-3, characters 0-61:
 1 | type 'a t : value mod contended portable =
 2 |   | Shared : ('b : value mod contended portable). 'b  -> 'b t
 3 |   | Unshared : (unit -> 'c) @@ portable               -> 'c t
-Error: The mode crossing of type "t" is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, portability
+Error: The kind of type "t" is value non_float mod portable immutable with 'a
+         because it's a boxed variant type.
+       But the kind of type "t" must be a subkind of
+           value mod portable contended
+         because of the annotation on the declaration of the type t.
 |}]
 
 (***********************************************************************)
@@ -251,7 +254,8 @@ Lines 1-2, characters 0-25:
 1 | type 'a u : immutable_data =
 2 | | P1 : ('b, 'a) t -> 'a u
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'b does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
+       because 'b does not cross linearity, contention, portability,
+                 forkable, yielding, statefulness, and visibility.
 |}]
 
 (* CR layouts v2.8: It'd also be OK to infer or accept [immutable_data with 'y] here. Internal ticket 4973. *)

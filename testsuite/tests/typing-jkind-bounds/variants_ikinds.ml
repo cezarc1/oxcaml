@@ -173,7 +173,8 @@ Line 1, characters 0-38:
 1 | type 'a t : immutable_data = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
+       because 'a does not cross linearity, contention, portability,
+                 forkable, yielding, statefulness, and visibility.
 |}]
 
 type 'a t : immutable_data = Foo of { mutable x : 'a }
@@ -181,8 +182,10 @@ type 'a t : immutable_data = Foo of { mutable x : 'a }
 Line 1, characters 0-54:
 1 | type 'a t : immutable_data = Foo of { mutable x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation immutable_data, because
-       - 'a does not cross contention, portability, statefulness, and visibility
+Error: This type definition does not satisfy its kind annotation immutable_data,
+       because
+       - 'a does not cross contention, portability, statefulness,
+           and visibility
        - mutable field x : 'a does not cross contention and visibility
 |}]
 
@@ -201,7 +204,8 @@ Line 1, characters 0-47:
 1 | type t : immutable_data = Foo of (unit -> unit)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because unit -> unit does not cross linearity, portability, forkable, yielding, and statefulness.
+       because unit -> unit does not cross linearity, portability, forkable,
+                 yielding, and statefulness.
 |}]
 
 type 'a t : immutable_data = Foo of 'a option
@@ -210,7 +214,8 @@ Line 1, characters 0-45:
 1 | type 'a t : immutable_data = Foo of 'a option
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, portability, forkable, yielding, statefulness, and visibility.
+       because 'a does not cross linearity, contention, portability,
+                 forkable, yielding, statefulness, and visibility.
 |}]
 
 type t : immutable_data = Foo of int * int | Bar of { mutable z : int }
@@ -228,7 +233,8 @@ Line 1, characters 0-51:
 1 | type t : mutable_data = Foo of { x : unit -> unit }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation mutable_data,
-       because unit -> unit does not cross linearity, portability, forkable, yielding, and statefulness.
+       because unit -> unit does not cross linearity, portability, forkable,
+                 yielding, and statefulness.
 |}]
 
 type ('a : value mod portable) t : value mod many = Foo of 'a
@@ -326,7 +332,8 @@ Line 1, characters 0-60:
 1 | type 'a t : immutable_data with 'a = Foo of { x : 'a -> 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'a -> 'a does not cross linearity, portability, forkable, yielding, and statefulness.
+       because 'a -> 'a does not cross linearity, portability, forkable,
+                 yielding, and statefulness.
 |}]
 
 type 'a t : value mod global with 'a = Foo of 'a
@@ -913,8 +920,10 @@ Error: Signature mismatch:
          type t = Foo of { mutable x : int; } | Bar of string
        is not included in
          type t : immutable_data
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+       The kind of the first is mutable_data
+         because of the definition of t at line 4, characters 2-53.
+       But the kind of the first must be a subkind of immutable_data
+         because of the definition of t at line 2, characters 2-25.
 |}]
 
 module M : sig
@@ -937,8 +946,10 @@ Error: Signature mismatch:
          type t = Foo of int ref | Bar of string
        is not included in
          type t : immutable_data
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: contention, visibility
+       The kind of the first is mutable_data
+         because of the definition of t at line 4, characters 2-41.
+       But the kind of the first must be a subkind of immutable_data
+         because of the definition of t at line 2, characters 2-25.
 |}]
 
 module M : sig
@@ -961,8 +972,10 @@ Error: Signature mismatch:
          type 'a t = Foo of 'a | Bar of string
        is not included in
          type 'a t : immutable_data
-       The mode crossing of the first is not allowed here.
-       The inferred ikind is not below the required ikind along: linearity, contention, portability, forkable, yielding, statefulness, visibility
+       The kind of the first is immutable_data with 'a
+         because of the definition of t at line 4, characters 2-39.
+       But the kind of the first must be a subkind of immutable_data
+         because of the definition of t at line 2, characters 2-28.
 |}]
 
 module M : sig
