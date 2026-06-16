@@ -723,7 +723,9 @@ let add_provenance_residual entries { ty; axes } =
         (fun axes entry ->
           List.fold_left
             (fun axes axis ->
-              if List.exists (same_axis axis) axes then axes else axes @ [ axis ])
+              if List.exists (same_axis axis) axes
+              then axes
+              else axes @ [ axis ])
             axes entry.axes)
         axes matching
     in
@@ -1491,7 +1493,9 @@ let check_mode_crossing_polys ~origin ~sub_jkind ~super_jkind
 let subjkind_error_has_provenance_residuals = function
   | Jkind_error _ -> false
   | Mode_crossing_error { failing_poly; provenance_names; violating_axes; _ } ->
-    match provenance_residuals ~provenance_names ~violating_axes failing_poly with
+    match
+      provenance_residuals ~provenance_names ~violating_axes failing_poly
+    with
     | [] -> false
     | _ :: _ -> true
 
