@@ -907,7 +907,8 @@ let report_mode_crossing_error ~offender env ppf
     | None ->
       Format_doc.fprintf ppf
         "@[<v>The mode crossing of %t is not allowed here.@;\
-         @[<hov 2>The inferred kind is not below the required kind along %a.@]@]"
+         @[<hov 2>The inferred kind is not below the required kind along \
+         %a.@]@]"
         offender pp_axis_list_prose violating_axes
 
 let report_subjkind_error_with_offender ~offender env ppf = function
