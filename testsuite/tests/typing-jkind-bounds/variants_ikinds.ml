@@ -341,7 +341,9 @@ type 'a t : value mod global with 'a = Foo of 'a
 Line 1, characters 0-48:
 1 | type 'a t : value mod global with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod global with 'a,
+Error: This type definition does not satisfy its kind annotation
+         value mod global
+           with 'a,
        because this variant type does not cross locality and uniqueness.
 |}]
 
@@ -350,7 +352,9 @@ type 'a t : value mod aliased with 'a = Foo of 'a
 Line 1, characters 0-49:
 1 | type 'a t : value mod aliased with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod aliased with 'a,
+Error: This type definition does not satisfy its kind annotation
+         value mod aliased
+           with 'a,
        because this variant type does not cross uniqueness.
 |}]
 
@@ -359,7 +363,9 @@ type 'a t : value mod external_ with 'a = Foo of 'a
 Line 1, characters 0-51:
 1 | type 'a t : value mod external_ with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod external_ with 'a,
+Error: This type definition does not satisfy its kind annotation
+         value mod external_
+           with 'a,
        because this variant type does not cross externality.
 |}]
 

@@ -21,17 +21,7 @@ val type_declaration_ikind_of_jkind :
   Types.jkind_l ->
   Types.type_ikind
 
-type mode_crossing_error =
-  { origin : string option;
-    sub_jkind : Types.jkind_l;
-    super_jkind : Types.jkind_l;
-    sub_poly : Types.Ldd.node;
-    super_poly : Types.Ldd.node;
-    failing_poly : Types.Ldd.node;
-    fast_path : string;
-    provenance_names : Types.Ldd.Name.t list;
-    violating_axes : Jkind_axis.Axis.packed list
-  }
+type mode_crossing_error
 
 type subjkind_error =
   | Jkind_error of Jkind.Violation.t

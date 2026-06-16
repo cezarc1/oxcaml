@@ -41,8 +41,6 @@ let fresh_unknown_uid () : Types.Uid.t =
 module Provenance = struct
   let next_id = ref 0
 
-  let by_id : (int, Types.type_expr) Hashtbl.t = Hashtbl.create 16
-
   let names : Ldd.Name.t list ref = ref []
 
   let register_text ty : Ldd.Name.t =
@@ -53,13 +51,11 @@ module Provenance = struct
     name
 
   let register (ty : Types.type_expr) : Ldd.Name.t =
-    Hashtbl.replace by_id !next_id ty;
     Format_doc.asprintf "%a" Jkind.format_type_expr ty
     |> String.map (function '\n' | '\r' | '\t' -> ' ' | c -> c)
     |> register_text
 
   let reset () =
-    Hashtbl.clear by_id;
     names := []
 
   let all_names () = List.rev !names
@@ -153,9 +149,9 @@ module Solver = struct
   let provenance_text (ctx : ctx) (text : string) : Ldd.node =
     rigid_name ctx (Provenance.register_text text)
 
-  let with_provenance_text (ctx : ctx) (text : string) (poly : Ldd.node) :
-      Ldd.node =
-    if ctx.add_provenance then Ldd.meet poly (provenance_text ctx text)
+  let with_provenance_text (ctx : ctx) (text : unit -> string)
+      (poly : Ldd.node) : Ldd.node =
+    if ctx.add_provenance then Ldd.meet poly (provenance_text ctx (text ()))
     else poly
 
   let type_may_be_circular (ty : Types.type_expr) : bool =
@@ -640,9 +636,32 @@ let collapse_whitespace s =
     s;
   Buffer.contents b
 
+let remove_numeric_path_stamps s =
+  let b = Buffer.create (String.length s) in
+  let is_digit = function '0' .. '9' -> true | _ -> false in
+  let rec loop i =
+    if i >= String.length s
+    then ()
+    else
+      match s.[i] with
+      | '/' when i + 1 < String.length s && is_digit s.[i + 1] ->
+        let rec skip_digits j =
+          if j < String.length s && is_digit s.[j]
+          then skip_digits (j + 1)
+          else j
+        in
+        loop (skip_digits (i + 1))
+      | c ->
+        Buffer.add_char b c;
+        loop (i + 1)
+  in
+  loop 0;
+  Buffer.contents b
+
 let format_jkind_single_line env jkind =
   Format_doc.asprintf "%a" (Jkind.format env) jkind
   |> collapse_whitespace
+  |> remove_numeric_path_stamps
 
 let pp_breakable_words ppf s =
   s
@@ -733,23 +752,27 @@ let add_provenance_residual entries { ty; axes } =
 
 let provenance_residuals ~provenance_names ~violating_axes residual =
   let provenance_vars = List.map Ldd.rigid provenance_names in
-  let _base, coeffs =
+  let base, coeffs =
     Ldd.decompose_into_linear_terms ~universe:provenance_vars residual
   in
-  List.combine provenance_names coeffs
-  |> List.filter_map (fun (name, coeff) ->
-       if is_bot_poly coeff
-       then None
-       else
-         match provenance_ty_of_name name with
-         | None -> None
-         | Some ty ->
-           let axes =
-             coeff |> axes_of_poly |> axes_in_violation_order ~violating_axes
-           in
-           Some { ty; axes })
-  |> List.fold_left add_provenance_residual []
-  |> List.rev
+  if not (is_bot_poly base)
+  then None
+  else
+    List.combine provenance_names coeffs
+    |> List.filter_map (fun (name, coeff) ->
+         if is_bot_poly coeff
+         then None
+         else
+           match provenance_ty_of_name name with
+           | None -> None
+           | Some ty ->
+             let axes =
+               coeff |> axes_of_poly |> axes_in_violation_order ~violating_axes
+             in
+             Some { ty; axes })
+    |> List.fold_left add_provenance_residual []
+    |> List.rev
+    |> Option.some
 
 let pp_residual_provenance_decomposition ~provenance_names
     (residual : Ldd.node) : string =
@@ -788,7 +811,14 @@ let pp_provenance_residual_bullets ppf entries =
 
 let pp_type_definition_kind_annotation env ppf super_jkind =
   let super_jkind_single_line = format_jkind_single_line env super_jkind in
-  if String.length super_jkind_single_line <= 48
+  let single_line_prefix =
+    "Error: This type definition does not satisfy its kind annotation "
+  in
+  if
+    String.length single_line_prefix
+    + String.length super_jkind_single_line
+    + 1
+    <= 88
   then
     Format_doc.fprintf ppf
       "This type definition does not satisfy its kind annotation %s,"
@@ -802,15 +832,15 @@ let pp_type_definition_kind_annotation env ppf super_jkind =
 let report_provenance_mode_crossing_error env ppf
     { super_jkind; failing_poly; provenance_names; violating_axes; _ } =
   match provenance_residuals ~provenance_names ~violating_axes failing_poly with
-  | [] -> None
-  | [ entry ] ->
+  | None | Some [] -> None
+  | Some [ entry ] ->
     Some
       (Format_doc.fprintf ppf
          "@[<v>%a@;\
           because %a.@]"
          (pp_type_definition_kind_annotation env) super_jkind
          pp_provenance_residual entry)
-  | entries ->
+  | Some entries ->
     Some
       (Format_doc.fprintf ppf
          "@[<v>%a@;\
@@ -829,7 +859,6 @@ let report_mode_crossing_error ~offender env ppf
       provenance_names;
       violating_axes
     } =
-  let axes = pp_axes violating_axes in
   let err =
     { origin;
       sub_jkind;
@@ -871,15 +900,15 @@ let report_mode_crossing_error ~offender env ppf
       (Ldd.pp super_poly)
       (Ldd.pp failing_poly)
       (pp_residual_provenance_decomposition ~provenance_names failing_poly)
-      axes
+      (pp_axes violating_axes)
   else
     match report_provenance_mode_crossing_error env ppf err with
     | Some () -> ()
     | None ->
       Format_doc.fprintf ppf
         "@[<v>The mode crossing of %t is not allowed here.@;\
-         The inferred ikind is not below the required ikind along: %s@]"
-        offender axes
+         @[<hov 2>The inferred kind is not below the required kind along %a.@]@]"
+        offender pp_axis_list_prose violating_axes
 
 let report_subjkind_error_with_offender ~offender env ppf = function
   | Jkind_error err ->
@@ -933,22 +962,22 @@ let label_mutability_provenance (ctx : Solver.ctx)
   match lbl.ld_mutable with
   | Immutable -> poly
   | Mutable { atomic = Nonatomic; _ } ->
-    let source =
-      Format.sprintf "mutable field %s : %s"
-        (Ident.name lbl.ld_id)
-        (format_type_expr_single_line lbl.ld_type)
-    in
-    Solver.with_provenance_text ctx source poly
+    Solver.with_provenance_text ctx
+      (fun () ->
+        Format.sprintf "mutable field %s : %s"
+          (Ident.name lbl.ld_id)
+          (format_type_expr_single_line lbl.ld_type))
+      poly
   | Mutable { atomic = Atomic; _ } ->
-    let source =
-      Format.sprintf "mutable field %s : %s [@atomic]"
-        (Ident.name lbl.ld_id)
-        (format_type_expr_single_line lbl.ld_type)
-    in
-    Solver.with_provenance_text ctx source poly
+    Solver.with_provenance_text ctx
+      (fun () ->
+        Format.sprintf "mutable field %s : %s [@atomic]"
+          (Ident.name lbl.ld_id)
+          (format_type_expr_single_line lbl.ld_type))
+      poly
 
 let decl_base_provenance (ctx : Solver.ctx) source poly =
-  Solver.with_provenance_text ctx source poly
+  Solver.with_provenance_text ctx (fun () -> source) poly
 
 (* Gather constructor-local vars from [tys]. *)
 let collect_type_vars (tys : Types.type_expr list) :
@@ -1496,8 +1525,21 @@ let subjkind_error_has_provenance_residuals = function
     match
       provenance_residuals ~provenance_names ~violating_axes failing_poly
     with
-    | [] -> false
-    | _ :: _ -> true
+    | None | Some [] -> false
+    | Some (_ :: _) -> true
+
+let same_axis_set axes1 axes2 =
+  List.length axes1 = List.length axes2
+  && List.for_all
+       (fun axis1 -> List.exists (same_axis axis1) axes2)
+       axes1
+
+let subjkind_errors_have_same_violating_axes error1 error2 =
+  match error1, error2 with
+  | Mode_crossing_error { violating_axes = axes1; _ },
+    Mode_crossing_error { violating_axes = axes2; _ } ->
+    same_axis_set axes1 axes2
+  | Jkind_error _, _ | _, Jkind_error _ -> false
 
 let best_effort_provenance_error ?fallback_error ~origin ~sub_jkind
     ~super_jkind actual_error make_polys =
@@ -1525,9 +1567,10 @@ let best_effort_provenance_error ?fallback_error ~origin ~sub_jkind
   match provenance_check with
   | Ok () -> fallback actual_error
   | Error provenance_error ->
-    if subjkind_error_has_provenance_residuals provenance_error
+    if subjkind_errors_have_same_violating_axes actual_error provenance_error
+       && subjkind_error_has_provenance_residuals provenance_error
     then Error provenance_error
-    else fallback provenance_error
+    else fallback actual_error
 
 let sub_jkind_l ?allow_any_crossing ?origin
     ~(type_equal : Types.type_expr -> Types.type_expr -> bool)
@@ -1633,8 +1676,13 @@ let check_type_expr_bound ?origin ~type_equal ~context env ~ty
     with
     | Ok () -> Ok ()
     | Error actual_error ->
-      best_effort_provenance_error ~origin ~sub_jkind:actual
-        ~super_jkind:bound actual_error
+      let fallback_error () =
+        match Jkind.sub_jkind_l ~type_equal ~context env actual bound with
+        | Ok () -> None
+        | Error jkind_error -> Some (Jkind_error jkind_error)
+      in
+      best_effort_provenance_error ~fallback_error ~origin
+        ~sub_jkind:actual ~super_jkind:bound actual_error
         (fun () -> compute_type_expr_bound_polys env ~ty bound)
 
 let check_type_decl_bound ?allow_any_crossing ?origin ~type_equal ~context

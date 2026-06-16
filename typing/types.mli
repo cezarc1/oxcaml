@@ -117,7 +117,8 @@ module Rigid_name : sig
         }
         (** A provenance variable introduced while translating a type expression
             for error reporting. The integer identifies the occurrence, and
-            [ty] describes the corresponding type expression. *)
+            [ty] describes the corresponding type expression. These variables
+            are diagnostic-only and must not appear in stored [type_ikind]s. *)
     | Unknown of unknown_id
         (** An unknown quantity with a given id. Used to model not-best in
             ikinds. This is used when we couldn't compute a precise ikind,

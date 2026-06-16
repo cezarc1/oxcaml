@@ -87,12 +87,10 @@ val f : t -> unit = <fun>
 Line 1, characters 0-75:
 1 | type t : immutable_data with Abs.t = { foo : 'a. (Abs.t * 'a ignore_type) }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation immutable_data with Abs.t,
-       because
-       - this record type does not cross linearity, contention, portability,
-           forkable, yielding, statefulness, and visibility
-       - Abs.t * unit does not cross linearity, contention, portability,
-           forkable, yielding, statefulness, and visibility
+Error: The mode crossing of type "t" is not allowed here.
+       The inferred kind is not below the required kind along linearity,
+         contention, portability, forkable, yielding, statefulness,
+         and visibility.
 |}]
 
 (******************************************)

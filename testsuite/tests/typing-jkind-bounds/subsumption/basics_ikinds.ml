@@ -599,7 +599,7 @@ end
 Line 3, characters 2-42:
 3 |   type t : immutable_data with r = int ref
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation immutable_data with r/2,
+Error: This type definition does not satisfy its kind annotation immutable_data with r,
        because int ref does not cross contention and visibility.
 |}]
 

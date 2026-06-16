@@ -784,7 +784,8 @@ type t : any mod many contended portable global = { x : t_value }
 Line 1, characters 0-65:
 1 | type t : any mod many contended portable global = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation any mod global many portable contended,
+Error: This type definition does not satisfy its kind annotation
+         any mod global many portable contended,
        because
        - this record type does not cross locality and uniqueness
        - t_value does not cross locality, uniqueness, linearity, contention,
@@ -1777,7 +1778,8 @@ type b = Foo of a
 Line 4, characters 0-68:
 4 | type c : value mod portable contended = { a : a @@ portable; b : b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1792,7 +1794,8 @@ type b = { a : a; }
 Line 4, characters 0-67:
 4 | type c : value mod portable contended = A of a @@ portable | B of b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1809,7 +1812,8 @@ type b = { b0 : b0; } [@@unboxed]
 Line 5, characters 0-67:
 5 | type c : value mod portable contended = A of a @@ portable | B of b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1824,7 +1828,8 @@ type b = Foo of a
 Line 4, characters 0-68:
 4 | type c : value mod portable contended = { b : b; a : a @@ portable }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1839,7 +1844,8 @@ and a = t
 Line 4, characters 0-68:
 4 | type c : value mod portable contended = { a : a @@ portable; b : b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1854,7 +1860,8 @@ type 'a b = Foo of 'a a
 Line 4, characters 0-77:
 4 | type 'a c : value mod portable contended = { a : 'a a @@ portable; b : 'a b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because
        - 'a does not cross portability
        - 'a b does not cross portability
@@ -1880,7 +1887,8 @@ Lines 4-9, characters 0-3:
 7 |   ; a : 'a a
 8 |   ; c : 'b b
 9 |   }
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because 'b does not cross portability.
 |}]
 
@@ -1895,7 +1903,8 @@ type b = Foo of a
 Line 4, characters 0-68:
 4 | type c : value mod portable contended = { a : a @@ portable; b : b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1910,7 +1919,8 @@ type b = Foo of a
 Line 4, characters 0-68:
 4 | type c : value mod portable contended = { a : a @@ portable; b : b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1934,7 +1944,8 @@ type d = Bar of c
 Lines 9-10, characters 0-56:
  9 | type e : value mod portable contended =
 10 |   { a : a @@ portable; b : b; c : c @@ portable; d : d }
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because
        - b does not cross portability
        - d does not cross portability
@@ -1951,7 +1962,8 @@ type b = Foo of a
 Line 4, characters 0-74:
 4 | type c : value mod portable contended = { a : a * int @@ portable; b : b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]
 
@@ -1966,6 +1978,7 @@ type b = Foo of a
 Line 4, characters 0-74:
 4 | type c : value mod portable contended = { a : a @@ portable; b : b * int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod portable contended,
+Error: This type definition does not satisfy its kind annotation
+         value mod portable contended,
        because b does not cross portability.
 |}]

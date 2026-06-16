@@ -48,7 +48,8 @@ type 'a bad : value_or_null mod global  = #{ i : 'a or_null @@ portable }
 Line 1, characters 0-73:
 1 | type 'a bad : value_or_null mod global  = #{ i : 'a or_null @@ portable }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value_or_null mod global,
+Error: This type definition does not satisfy its kind annotation
+         value_or_null mod global,
        because 'a does not cross locality, uniqueness, forkable, and yielding.
 |}]
 

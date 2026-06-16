@@ -314,7 +314,9 @@ type 'a t : value mod global with 'a = { x : 'a }
 Line 1, characters 0-49:
 1 | type 'a t : value mod global with 'a = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod global with 'a,
+Error: This type definition does not satisfy its kind annotation
+         value mod global
+           with 'a,
        because this record type does not cross locality and uniqueness.
 |}]
 
@@ -323,7 +325,9 @@ type 'a t : value mod aliased with 'a = { x : 'a }
 Line 1, characters 0-50:
 1 | type 'a t : value mod aliased with 'a = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod aliased with 'a,
+Error: This type definition does not satisfy its kind annotation
+         value mod aliased
+           with 'a,
        because this record type does not cross uniqueness.
 |}]
 
@@ -332,7 +336,9 @@ type 'a t : value mod external_ with 'a = { x : 'a }
 Line 1, characters 0-52:
 1 | type 'a t : value mod external_ with 'a = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod external_ with 'a,
+Error: This type definition does not satisfy its kind annotation
+         value mod external_
+           with 'a,
        because this record type does not cross externality.
 |}]
 

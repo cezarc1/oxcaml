@@ -101,7 +101,9 @@ type u
 Line 4, characters 0-36:
 4 | type t : value mod global with a = u
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation value mod global with a,
+Error: This type definition does not satisfy its kind annotation
+         value mod global
+           with a,
        because u does not cross locality, uniqueness, forkable, and yielding.
 |}]
 

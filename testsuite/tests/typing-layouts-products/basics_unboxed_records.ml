@@ -763,7 +763,8 @@ type q : any mod portable = #{ x : int -> int; y : int -> q }
 Line 1, characters 0-61:
 1 | type q : any mod portable = #{ x : int -> int; y : int -> q }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation any mod portable & any mod portable,
+Error: This type definition does not satisfy its kind annotation
+         any mod portable & any mod portable,
        because
        - int -> int does not cross portability
        - int -> q does not cross portability
