@@ -1353,14 +1353,10 @@ type subcheck_polys =
     fast_path : subcheck_fast_path
   }
 
-(* Compute polynomials for a subcheck:
-   - compute [super] in Normal mode
-   - fast path: if [super] is constant top, no need to compute [sub]
-   - otherwise, if [super] is constant, try the lhs mod-bounds floor fast path
-   - otherwise, only round up [sub] if [super] is constant *)
-let compute_subcheck_polys ~context:_ env
-    (sub : ('l1 * 'r1) Types.jkind) (super : ('l2 * 'r2) Types.jkind) :
-    subcheck_polys =
+let compute_bound_polys env
+    (super : ('l2 * 'r2) Types.jkind)
+    ~(lhs_floor : (Solver.ctx -> Ldd.node option) option)
+    ~(lhs : Solver.ctx -> Ldd.node) : subcheck_polys =
   Provenance.reset ();
   let ctx = create_ctx ~mode:Solver.Normal ~env:(Some env) in
   let super_poly = Solver.ckind_of_jkind ctx super in
@@ -1380,16 +1376,19 @@ let compute_subcheck_polys ~context:_ env
     let floor_fast_path =
       if super_is_constant
       then
-        match Solver.mod_bounds_floor_of_jkind ctx sub with
+        match lhs_floor with
         | None -> None
-        | Some lhs_floor ->
-          let lhs_floor_or_super = Ldd.join lhs_floor super_poly in
-          if
-            Axis_lattice.equal
-              (Ldd.round_up lhs_floor_or_super)
-              Axis_lattice.top
-          then Some lhs_floor
-          else None
+        | Some lhs_floor -> (
+          match lhs_floor ctx with
+          | None -> None
+          | Some lhs_floor ->
+            let lhs_floor_or_super = Ldd.join lhs_floor super_poly in
+            if
+              Axis_lattice.equal
+                (Ldd.round_up lhs_floor_or_super)
+                Axis_lattice.top
+            then Some lhs_floor
+            else None)
       else None
     in
     match floor_fast_path with
@@ -1399,78 +1398,36 @@ let compute_subcheck_polys ~context:_ env
         fast_path = Lhs_mod_bounds_floor_fast_path
       }
     | None ->
-      let sub_ctx =
+      let lhs_ctx =
         if super_is_constant
         then Solver.reset_for_mode ctx ~mode:Solver.Round_up
         else ctx
       in
-      let sub_poly = Solver.ckind_of_jkind sub_ctx sub in
-      { lhs_for_leq = sub_poly;
+      let lhs_poly = lhs lhs_ctx in
+      { lhs_for_leq = lhs_poly;
         rhs_for_leq = super_poly;
         fast_path = No_fast_path
       }
 
-let compute_type_expr_bound_polys env ~(ty : Types.type_expr)
-    (bound : Types.jkind_l) : subcheck_polys =
-  Provenance.reset ();
-  let ctx = create_ctx ~mode:Solver.Normal ~env:(Some env) in
-  let super_poly = Solver.ckind_of_jkind ctx bound in
-  let super_is_constant =
-    Ldd.solve_pending ();
-    Ldd.is_const super_poly
-  in
-  if super_is_constant
-     && Axis_lattice.equal (Ldd.round_up super_poly) Axis_lattice.top
-  then
-    { lhs_for_leq = Ldd.bot;
-      rhs_for_leq = super_poly;
-      fast_path = Rhs_top_fast_path
-    }
-  else
-    let sub_ctx =
-      let ctx =
-        if super_is_constant
-        then Solver.reset_for_mode ctx ~mode:Solver.Round_up
-        else ctx
-      in
-      Solver.reset_for_provenance ctx ~add_provenance:true
-    in
-    let sub_poly = Solver.kind ~use_tables:true sub_ctx ty in
-    { lhs_for_leq = sub_poly;
-      rhs_for_leq = super_poly;
-      fast_path = No_fast_path
-    }
+(* Compute polynomials for a subcheck:
+   - compute [super] in Normal mode
+   - fast path: if [super] is constant top, no need to compute [sub]
+   - otherwise, if [super] is constant, try the lhs mod-bounds floor fast path
+   - otherwise, only round up [sub] if [super] is constant *)
+let compute_subcheck_polys ~context:_ env
+    (sub : ('l1 * 'r1) Types.jkind) (super : ('l2 * 'r2) Types.jkind) :
+    subcheck_polys =
+  compute_bound_polys env super
+    ~lhs_floor:(Some (fun ctx -> Solver.mod_bounds_floor_of_jkind ctx sub))
+    ~lhs:(fun ctx -> Solver.ckind_of_jkind ctx sub)
 
-let compute_type_decl_bound_polys env ~(decl : Types.type_declaration)
+let compute_provenance_bound_polys env
+    ~(lhs : Solver.ctx -> Ldd.node)
     (bound : Types.jkind_l) : subcheck_polys =
-  Provenance.reset ();
-  let ctx = create_ctx ~mode:Solver.Normal ~env:(Some env) in
-  let super_poly = Solver.ckind_of_jkind ctx bound in
-  let super_is_constant =
-    Ldd.solve_pending ();
-    Ldd.is_const super_poly
-  in
-  if super_is_constant
-     && Axis_lattice.equal (Ldd.round_up super_poly) Axis_lattice.top
-  then
-    { lhs_for_leq = Ldd.bot;
-      rhs_for_leq = super_poly;
-      fast_path = Rhs_top_fast_path
-    }
-  else
-    let sub_ctx =
-      let ctx =
-        if super_is_constant
-        then Solver.reset_for_mode ctx ~mode:Solver.Round_up
-        else ctx
-      in
-      Solver.reset_for_provenance ctx ~add_provenance:true
-    in
-    let sub_poly = type_decl_rhs_kind_poly sub_ctx decl in
-    { lhs_for_leq = sub_poly;
-      rhs_for_leq = super_poly;
-      fast_path = No_fast_path
-    }
+  compute_bound_polys env bound ~lhs_floor:None
+    ~lhs:(fun ctx ->
+      let ctx = Solver.reset_for_provenance ctx ~add_provenance:true in
+      lhs ctx)
 
 let report_debug_subjkind_call ~origin ~allow_any ~fast_path
     ~sub_poly ~super_poly =
@@ -1658,36 +1615,8 @@ let trace_type_expr_actual_comparison ?origin env ~ty ~actual =
         (pp_axes_or_none actual_not_ty)
   end
 
-let check_type_expr_bound ?origin ~type_equal ~context env ~ty
-    ~actual ~bound =
-  trace_type_expr_actual_comparison ?origin env ~ty ~actual;
-  if not (enable_sub_jkind_l && !Clflags.ikinds)
-  then sub_jkind_l ?origin ~type_equal ~context env actual bound
-  else
-    let open Misc.Stdlib.Monad.Result.Syntax in
-    let* () =
-      match Jkind.sub_layout_or_error ~context env actual bound with
-      | Ok () -> Ok ()
-      | Error v -> Error (Jkind_error v)
-    in
-    let actual_polys = compute_subcheck_polys ~context env actual bound in
-    match
-      check_mode_crossing_polys ~origin ~sub_jkind:actual
-        ~super_jkind:bound actual_polys
-    with
-    | Ok () -> Ok ()
-    | Error actual_error ->
-      let fallback_error () =
-        match Jkind.sub_jkind_l ~type_equal ~context env actual bound with
-        | Ok () -> None
-        | Error jkind_error -> Some (Jkind_error jkind_error)
-      in
-      best_effort_provenance_error ~fallback_error ~origin
-        ~sub_jkind:actual ~super_jkind:bound actual_error
-        (fun () -> compute_type_expr_bound_polys env ~ty bound)
-
-let check_type_decl_bound ?allow_any_crossing ?origin ~type_equal ~context
-    env ~decl ~actual ~bound =
+let check_bound ?allow_any_crossing ?origin ~type_equal ~context env
+    ~actual ~bound ~provenance_lhs =
   if not (enable_sub_jkind_l && !Clflags.ikinds)
   then
     sub_jkind_l ?allow_any_crossing ?origin ~type_equal ~context env actual
@@ -1708,7 +1637,7 @@ let check_type_decl_bound ?allow_any_crossing ?origin ~type_equal ~context
       then
         let origin_suffix = origin_suffix_of origin in
         Format.eprintf
-          "[ikind-type-decl-bound] call%s allow_any=true@."
+          "[ikind-bound] call%s allow_any=true@."
           origin_suffix);
       Ok ())
     else
@@ -1729,7 +1658,20 @@ let check_type_decl_bound ?allow_any_crossing ?origin ~type_equal ~context
         in
         best_effort_provenance_error ~fallback_error ~origin
           ~sub_jkind:actual ~super_jkind:bound actual_error
-          (fun () -> compute_type_decl_bound_polys env ~decl bound)
+          (fun () ->
+            compute_provenance_bound_polys env ~lhs:provenance_lhs bound)
+
+let check_type_expr_bound ?origin ~type_equal ~context env ~ty
+    ~actual ~bound =
+  trace_type_expr_actual_comparison ?origin env ~ty ~actual;
+  check_bound ?origin ~type_equal ~context env ~actual ~bound
+    ~provenance_lhs:(fun ctx -> Solver.kind ~use_tables:true ctx ty)
+
+let check_type_decl_bound ?allow_any_crossing ?origin ~type_equal ~context
+    env ~decl ~actual ~bound =
+  check_bound ?allow_any_crossing ?origin ~type_equal ~context env
+    ~actual ~bound
+    ~provenance_lhs:(fun ctx -> type_decl_rhs_kind_poly ctx decl)
 
 let crossing_of_jkind ~(context : Jkind.jkind_context) env
     (jkind : ('l * 'r) Types.jkind) : Mode.Crossing.t =
