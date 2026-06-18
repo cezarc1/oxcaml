@@ -2749,7 +2749,7 @@ let unbox_once env ty =
                wrapper type rather than the declaration parameters. *)
             Btype.Jkind0.variant_constructor_gadt_extra_substs
               ~projected_params:args
-              ~cstr_res:(Some cstr.Types.cstr_res)
+              ~cstr_res:(Some cstr.cstr_res)
               ~payload_tys:[ty2]
               ~get_free_vars:(free_variable_set_of_list env)
           | Type_variant ([{ cstr_generalized = false }], _, _) -> []

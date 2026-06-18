@@ -2456,7 +2456,7 @@ let rec update_decl_jkind env dpath decl =
       begin match Datarepr.find_variant_with_null_payload cstrs with
       | Some
           { payload_cstr = ({ Types.cd_uid; cd_res; _ } as payload_cstr);
-            payload_arg = { ca_type = ty; ca_modalities = modality; _ } } ->
+            payload_arg = { ca_modalities = modality; _ } } ->
         let projected_payload_ty =
           match
             Btype.Jkind0.project_variant_constructor_arg_tys
