@@ -12,15 +12,15 @@ type s = { e : t; f : t }
 [%%expect{|
 { c = (missing);
   r = ⟪ (let (one =[value<int>] 1)
-          (apply (field_imm 1 (global Toploop!)) "one" one)) ⟫ }
+          (apply[unyielding] (field_imm 1 (global Toploop!)) "one" one)) ⟫ }
 val one : int = 1
 { c = (missing);
   r = ⟪ (let (two =[value<int>] 2)
-          (apply (field_imm 1 (global Toploop!)) "two" two)) ⟫ }
+          (apply[unyielding] (field_imm 1 (global Toploop!)) "two" two)) ⟫ }
 val two : int = 2
 { c = (missing);
   r = ⟪ (let (two_u =[int] #2m)
-          (apply (field_imm 1 (global Toploop!)) "two_u" two_u)) ⟫ }
+          (apply[unyielding] (field_imm 1 (global Toploop!)) "two_u" two_u)) ⟫ }
 val two_u : int# = <abstr>
 { c = (missing); r = ⟪ 0 ⟫ }
 type t = { a : int; b : int; }
@@ -35,14 +35,14 @@ type s = { e : t; f : t; }
 { c = (let
         (two =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "two") ⟫ }
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!)) "two") ⟫ }
          one =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "one") ⟫ })
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!)) "one") ⟫ })
         [ one.c; two.c; ]);
   r = ⟪ (let
-          (two =? (apply (field_imm 0 (global Toploop!)) "two")
-           one =? (apply (field_imm 0 (global Toploop!)) "one"))
+          (two =? (apply[unyielding] (field_imm 0 (global Toploop!)) "two")
+           one =? (apply[unyielding] (field_imm 0 (global Toploop!)) "one"))
           (makeblock 0 (value<int>,value<int>) one two)) ⟫ }
 - : t = {a = 1; b = 2}
 |}];;
@@ -52,14 +52,14 @@ type s = { e : t; f : t; }
 { c = (let
         (two =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "two") ⟫ }
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!)) "two") ⟫ }
          one =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "one") ⟫ })
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!)) "one") ⟫ })
         [ one.c; two.c; ].0);
   r = ⟪ (let
-          (two =? (apply (field_imm 0 (global Toploop!)) "two")
-           one =? (apply (field_imm 0 (global Toploop!)) "one"))
+          (two =? (apply[unyielding] (field_imm 0 (global Toploop!)) "two")
+           one =? (apply[unyielding] (field_imm 0 (global Toploop!)) "one"))
           (region
             (field_int 0 (makelocalblock 0 (value<int>,value<int>) one two)))) ⟫ }
 - : int = 1
@@ -70,14 +70,16 @@ type s = { e : t; f : t; }
 { c = (let
         (two_u =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "two_u") ⟫ }
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!))
+                     "two_u") ⟫ }
          one =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "one") ⟫ })
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!)) "one") ⟫ })
         [ one.c; two_u.c; ].0);
   r = ⟪ (let
-          (two_u =? (apply (field_imm 0 (global Toploop!)) "two_u")
-           one =? (apply (field_imm 0 (global Toploop!)) "one"))
+          (two_u =?
+             (apply[unyielding] (field_imm 0 (global Toploop!)) "two_u")
+           one =? (apply[unyielding] (field_imm 0 (global Toploop!)) "one"))
           (region
             (mixedfield 0  (value<int>,untagged_immediate)
               (makelocalblock 0 (value_or_null<int>,untagged_immediate) one
@@ -92,10 +94,10 @@ let y = { a = two; b = one } in
 { c = (let
         (two =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "two") ⟫ }
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!)) "two") ⟫ }
          one =
            { c = (missing);
-             r = ⟪ (apply (field_imm 0 (global Toploop!)) "one") ⟫ }
+             r = ⟪ (apply[unyielding] (field_imm 0 (global Toploop!)) "one") ⟫ }
          x =
            { c = [ one.c; two.c; ];
              r = ⟪ (makeblock 0 (value<int>,value<int>) one two) ⟫ }
@@ -104,8 +106,8 @@ let y = { a = two; b = one } in
              r = ⟪ (makeblock 0 (value<int>,value<int>) two one) ⟫ })
         [ x.c; y.c; ]);
   r = ⟪ (let
-          (two =? (apply (field_imm 0 (global Toploop!)) "two")
-           one =? (apply (field_imm 0 (global Toploop!)) "one")
+          (two =? (apply[unyielding] (field_imm 0 (global Toploop!)) "two")
+           one =? (apply[unyielding] (field_imm 0 (global Toploop!)) "one")
            x =[value<(consts ()) (non_consts ([0: value<int>, value<int>]))>]
              (makeblock 0 (value<int>,value<int>) one two)
            y =[value<(consts ()) (non_consts ([0: value<int>, value<int>]))>]

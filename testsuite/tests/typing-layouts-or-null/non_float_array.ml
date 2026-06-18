@@ -12,7 +12,7 @@
 let mk_gen (x : 'a) = [| x |]
 [%%expect{|
 (let (mk_gen = (function {nlocal = 0} x? : genarray (makearray[gen] x)))
-  (apply (field_imm 1 (global Toploop!)) "mk_gen" mk_gen))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "mk_gen" mk_gen))
 val mk_gen : ('a : value_maybe_null). 'a -> 'a array = <fun>
 |}]
 
@@ -22,7 +22,7 @@ let get_gen (xs : 'a array) i = xs.(i)
   (get_gen =
      (function {nlocal = 0} xs[value<genarray>] i[value<int>]
        (array.get[gen indexed by int] xs i)))
-  (apply (field_imm 1 (global Toploop!)) "get_gen" get_gen))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "get_gen" get_gen))
 val get_gen : ('a : value_maybe_null). 'a array -> int -> 'a = <fun>
 |}]
 
@@ -32,7 +32,7 @@ let set_gen (xs : 'a array) x i = xs.(i) <- x
   (set_gen =
      (function {nlocal = 0} xs[value<genarray>] x? i[value<int>] : int
        (array.set[gen indexed by int] xs i x)))
-  (apply (field_imm 1 (global Toploop!)) "set_gen" set_gen))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "set_gen" set_gen))
 val set_gen : ('a : value_maybe_null). 'a array -> 'a -> int -> unit = <fun>
 |}]
 
@@ -44,7 +44,7 @@ val set_gen : ('a : value_maybe_null). 'a array -> 'a -> int -> unit = <fun>
 let mk (type t : value mod non_float) (x : t) = [| x |]
 [%%expect{|
 (let (mk = (function {nlocal = 0} x : addrarray (makearray[addr] x)))
-  (apply (field_imm 1 (global Toploop!)) "mk" mk))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "mk" mk))
 val mk : ('t : value non_float). 't -> 't array = <fun>
 |}]
 
@@ -54,7 +54,7 @@ let get (type t : value mod non_float) (xs : t array) i = xs.(i)
   (get =
      (function {nlocal = 0} xs[value<addrarray>] i[value<int>]
        (array.get[addr indexed by int] xs i)))
-  (apply (field_imm 1 (global Toploop!)) "get" get))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "get" get))
 val get : ('t : value non_float). 't array -> int -> 't = <fun>
 |}]
 
@@ -65,7 +65,7 @@ let set (type t : value mod non_float) (xs : t array) x i = xs.(i) <- x
   (set =
      (function {nlocal = 0} xs[value<addrarray>] x i[value<int>] : int
        (array.set[addr indexed by int] xs i x)))
-  (apply (field_imm 1 (global Toploop!)) "set" set))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "set" set))
 val set : ('t : value non_float). 't array -> 't -> int -> unit = <fun>
 |}]
 
@@ -84,7 +84,7 @@ end = struct
 end
 
 [%%expect{|
-(apply (field_imm 1 (global Toploop!)) "X/378"
+(apply[unyielding] (field_imm 1 (global Toploop!)) "X/378"
   (let
     (x1 =[value<(consts ()) (non_consts ([0: *, value<int>]))>]
        [0: "first" 1]
@@ -107,7 +107,7 @@ let () =
 
 [%%expect{|
 (let
-  (X =? (apply (field_imm 0 (global Toploop!)) "X/378")
+  (X =? (apply[unyielding] (field_imm 0 (global Toploop!)) "X/378")
    *match* =[value<int>]
      (let (xs =[value<addrarray>] (caml_array_make 4 (field_imm 0 X)))
        (seq (array.set[addr indexed by int] xs 1 (field_imm 1 X))

@@ -17,7 +17,7 @@ module Atomic = struct
   end
 end
 [%%expect{|
-(apply (field_imm 1 (global Toploop!)) "Atomic/292"
+(apply[unyielding] (field_imm 1 (global Toploop!)) "Atomic/292"
   (let (Loc = (makeblock 0)) (makeblock 0 Loc)))
 module Atomic :
   sig
@@ -55,7 +55,7 @@ module Basic = struct
     Atomic.Loc.compare_and_set (get_loc r) oldv newv
 end
 [%%expect{|
-(apply (field_imm 1 (global Toploop!)) "Basic/330"
+(apply[unyielding] (field_imm 1 (global Toploop!)) "Basic/330"
   (let
     (get = (function {nlocal = 0} r (atomic_load_field_ptr r 1))
      get_imm = (function {nlocal = 0} r : int (atomic_load_field_imm r 1))
@@ -71,7 +71,7 @@ end
          (makeblock 0 (*,value<int>) r 1))
      slow_cas =
        (function {nlocal = 0} r oldv newv : int
-         (let (atomic_arg = (apply get_loc r))
+         (let (atomic_arg = (apply[unyielding] get_loc r))
            (atomic_compare_set_field_ptr (field_imm 0 atomic_arg)
              (field_int 1 atomic_arg) oldv newv))))
     (makeblock 0 get get_imm set set_imm cas get_loc slow_cas)))
@@ -190,7 +190,7 @@ end : sig
   type t = { mutable x : int [@atomic] }
 end)
 [%%expect{|
-(apply (field_imm 1 (global Toploop!)) "Ok/360" (makeblock 0))
+(apply[unyielding] (field_imm 1 (global Toploop!)) "Ok/360" (makeblock 0))
 module Ok : sig type t = { mutable x : int [@atomic]; } end
 |}];;
 
@@ -204,7 +204,7 @@ module Inline_record = struct
   let test : t -> int = fun (A r) -> r.x
 end
 [%%expect{|
-(apply (field_imm 1 (global Toploop!)) "Inline_record/368"
+(apply[unyielding] (field_imm 1 (global Toploop!)) "Inline_record/368"
   (let
     (test =
        (function {nlocal = 0} param : int (atomic_load_field_imm param 0)))
@@ -226,7 +226,8 @@ module Extension_with_inline_record = struct
   let () = assert (test (A { x = 42 }) = 42)
 end
 [%%expect{|
-(apply (field_imm 1 (global Toploop!)) "Extension_with_inline_record/376"
+(apply[unyielding] (field_imm 1 (global Toploop!))
+  "Extension_with_inline_record/376"
   (let
     (A =
        (makeblock_unique 248 "Extension_with_inline_record.A"
@@ -235,8 +236,10 @@ end
        (function {nlocal = 0} param : int
          (if (%eq (field_imm 0 param) A) (atomic_load_field_imm param 1) 0))
      *match* =[value<int>]
-       (if (%eq (apply test (makemutable 0 (?,value<int>) A 42)) 42) 0
-         (raise (makeblock 0 (getpredef Assert_failure!!) [0: "" 11 11]))))
+       (if
+         (%eq (apply[unyielding] test (makemutable 0 (?,value<int>) A 42))
+           42)
+         0 (raise (makeblock 0 (getpredef Assert_failure!!) [0: "" 11 11]))))
     (makeblock 0 A test)))
 module Extension_with_inline_record :
   sig
@@ -263,7 +266,7 @@ Warning 214 [atomic-float-record-boxed]: This record contains atomic float field
   which prevents the float record optimization.
   The fields of this record will be boxed instead of being
   represented as a flat float array.
-(apply (field_imm 1 (global Toploop!)) "Float_records/400"
+(apply[unyielding] (field_imm 1 (global Toploop!)) "Float_records/400"
   (let
     (mk_flat =
        (function {nlocal = 0} x[value<float>] y[value<float>]
@@ -483,7 +486,8 @@ Line 5, characters 14-19:
 Warning 9 [missing-record-field-pattern]: the following labels are not bound
   in this record pattern: "y".
   Either bind these labels explicitly or add "; _" to the pattern.
-(apply (field_imm 1 (global Toploop!)) "Pattern_matching_wildcard/463"
+(apply[unyielding] (field_imm 1 (global Toploop!))
+  "Pattern_matching_wildcard/463"
   (let
     (warning = (function {nlocal = 0} param : int (field_int 0 param))
      allowed = (function {nlocal = 0} param : int (field_int 0 param))

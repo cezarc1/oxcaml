@@ -18,14 +18,16 @@ type record = { x : string; y : string @@ many aliased; }
 let aliased_use x = x
 [%%expect{|
 (let (aliased_use/294 = (function {nlocal = 0} x/296? x/296))
-  (apply (field_imm 1 (global Toploop!)) "aliased_use" aliased_use/294))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "aliased_use"
+    aliased_use/294))
 val aliased_use : 'a -> 'a = <fun>
 |}]
 
 let unique_use (x @ unique) = x
 [%%expect{|
 (let (unique_use/297 = (function {nlocal = 0} x/299? x/299))
-  (apply (field_imm 1 (global Toploop!)) "unique_use" unique_use/297))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "unique_use"
+    unique_use/297))
 val unique_use : 'a @ unique -> 'a = <fun>
 |}]
 
@@ -36,7 +38,8 @@ let proj_aliased r =
   (r, y)
 [%%expect{|
 (let
-  (aliased_use/294 =? (apply (field_imm 0 (global Toploop!)) "aliased_use")
+  (aliased_use/294 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "aliased_use")
    proj_aliased/300 =
      (function {nlocal = 0}
        r/302[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -45,10 +48,11 @@ let proj_aliased r =
        (let
          (y/303 = (field_imm 1 r/302)
           r/304 =[value<(consts ()) (non_consts ([0: *, *]))>]
-            (apply aliased_use/294 r/302))
+            (apply[unyielding] aliased_use/294 r/302))
          (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/304
            y/303))))
-  (apply (field_imm 1 (global Toploop!)) "proj_aliased" proj_aliased/300))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "proj_aliased"
+    proj_aliased/300))
 val proj_aliased : record -> record * string = <fun>
 |}]
 
@@ -58,7 +62,8 @@ let proj_unique r =
   (r, y)
 [%%expect{|
 (let
-  (unique_use/297 =? (apply (field_imm 0 (global Toploop!)) "unique_use")
+  (unique_use/297 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "unique_use")
    proj_unique/305 =
      (function {nlocal = 0}
        r/307[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -67,10 +72,11 @@ let proj_unique r =
        (let
          (y/308 = (field_mut 1 r/307)
           r/309 =[value<(consts ()) (non_consts ([0: *, *]))>]
-            (apply unique_use/297 r/307))
+            (apply[unyielding] unique_use/297 r/307))
          (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/309
            y/308))))
-  (apply (field_imm 1 (global Toploop!)) "proj_unique" proj_unique/305))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "proj_unique"
+    proj_unique/305))
 val proj_unique : record @ unique -> record * string = <fun>
 |}]
 
@@ -83,7 +89,8 @@ let match_aliased r =
     (r, y)
 [%%expect{|
 (let
-  (aliased_use/294 =? (apply (field_imm 0 (global Toploop!)) "aliased_use")
+  (aliased_use/294 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "aliased_use")
    match_aliased/310 =
      (function {nlocal = 0}
        r/312[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -91,10 +98,11 @@ let match_aliased r =
           (non_consts ([0: value<(consts ()) (non_consts ([0: *, *]))>, *]))
        (let
          (r/314 =[value<(consts ()) (non_consts ([0: *, *]))>]
-            (apply aliased_use/294 r/312))
+            (apply[unyielding] aliased_use/294 r/312))
          (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/314
            (field_imm 1 r/312)))))
-  (apply (field_imm 1 (global Toploop!)) "match_aliased" match_aliased/310))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "match_aliased"
+    match_aliased/310))
 val match_aliased : record -> record * string = <fun>
 |}]
 
@@ -106,7 +114,8 @@ let match_unique r =
     (r, y)
 [%%expect{|
 (let
-  (unique_use/297 =? (apply (field_imm 0 (global Toploop!)) "unique_use")
+  (unique_use/297 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "unique_use")
    match_unique/316 =
      (function {nlocal = 0}
        r/318[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -115,10 +124,11 @@ let match_unique r =
        (let
          (y/319 =o? (field_mut 1 r/318)
           r/320 =[value<(consts ()) (non_consts ([0: *, *]))>]
-            (apply unique_use/297 r/318))
+            (apply[unyielding] unique_use/297 r/318))
          (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/320
            y/319))))
-  (apply (field_imm 1 (global Toploop!)) "match_unique" match_unique/316))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "match_unique"
+    match_unique/316))
 val match_unique : record @ unique -> record * string = <fun>
 |}]
 
@@ -132,7 +142,8 @@ let match_mini_anf_aliased r =
   (r, y)
 [%%expect{|
 (let
-  (aliased_use/294 =? (apply (field_imm 0 (global Toploop!)) "aliased_use")
+  (aliased_use/294 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "aliased_use")
    match_mini_anf_aliased/322 =
      (function {nlocal = 0}
        r/324[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -141,10 +152,10 @@ let match_mini_anf_aliased r =
        (let
          (*match*/330 =[value<int>] 1
           r/327 =[value<(consts ()) (non_consts ([0: *, *]))>]
-            (apply aliased_use/294 r/324))
+            (apply[unyielding] aliased_use/294 r/324))
          (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/327
            (field_imm 1 r/324)))))
-  (apply (field_imm 1 (global Toploop!)) "match_mini_anf_aliased"
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "match_mini_anf_aliased"
     match_mini_anf_aliased/322))
 val match_mini_anf_aliased : record -> record * string = <fun>
 |}]
@@ -159,7 +170,8 @@ let match_mini_anf_unique r =
   (r, y)
 [%%expect{|
 (let
-  (unique_use/297 =? (apply (field_imm 0 (global Toploop!)) "unique_use")
+  (unique_use/297 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "unique_use")
    match_mini_anf_unique/332 =
      (function {nlocal = 0}
        r/334[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -169,10 +181,10 @@ let match_mini_anf_unique r =
          (y/336 =o? (field_mut 1 r/334)
           *match*/340 =[value<int>] 1
           r/337 =[value<(consts ()) (non_consts ([0: *, *]))>]
-            (apply unique_use/297 r/334))
+            (apply[unyielding] unique_use/297 r/334))
          (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/337
            y/336))))
-  (apply (field_imm 1 (global Toploop!)) "match_mini_anf_unique"
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "match_mini_anf_unique"
     match_mini_anf_unique/332))
 val match_mini_anf_unique : record @ unique -> record * string = <fun>
 |}]
@@ -187,7 +199,8 @@ let match_anf_aliased r =
   (r, y)
 [%%expect{|
 (let
-  (aliased_use/294 =? (apply (field_imm 0 (global Toploop!)) "aliased_use")
+  (aliased_use/294 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "aliased_use")
    match_anf_aliased/342 =
      (function {nlocal = 0}
        r/344[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -202,10 +215,10 @@ let match_anf_aliased r =
         with (21 y/345)
          (let
            (r/348 =[value<(consts ()) (non_consts ([0: *, *]))>]
-              (apply aliased_use/294 r/344))
+              (apply[unyielding] aliased_use/294 r/344))
            (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/348
              y/345)))))
-  (apply (field_imm 1 (global Toploop!)) "match_anf_aliased"
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "match_anf_aliased"
     match_anf_aliased/342))
 val match_anf_aliased : record -> record * string = <fun>
 |}]
@@ -221,7 +234,8 @@ let match_anf_unique r =
   (r, y)
 [%%expect{|
 (let
-  (unique_use/297 =? (apply (field_imm 0 (global Toploop!)) "unique_use")
+  (unique_use/297 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "unique_use")
    match_anf_unique/354 =
      (function {nlocal = 0}
        r/356[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -236,10 +250,10 @@ let match_anf_unique r =
         with (29 y/357)
          (let
            (r/360 =[value<(consts ()) (non_consts ([0: *, *]))>]
-              (apply unique_use/297 r/356))
+              (apply[unyielding] unique_use/297 r/356))
            (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*) r/360
              y/357)))))
-  (apply (field_imm 1 (global Toploop!)) "match_anf_unique"
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "match_anf_unique"
     match_anf_unique/354))
 val match_anf_unique : record @ unique -> record * string = <fun>
 |}]
@@ -384,7 +398,8 @@ let swap_inner (t : tree) =
                (exit 36)))
            (exit 36))
         with (36) t/374)))
-  (apply (field_imm 1 (global Toploop!)) "swap_inner" swap_inner/372))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "swap_inner"
+    swap_inner/372))
 val swap_inner : tree -> tree = <fun>
 |}]
 
@@ -414,8 +429,10 @@ let match_guard r =
     (r, y)
 [%%expect{|
 (let
-  (unique_use/297 =? (apply (field_imm 0 (global Toploop!)) "unique_use")
-   aliased_use/294 =? (apply (field_imm 0 (global Toploop!)) "aliased_use")
+  (unique_use/297 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "unique_use")
+   aliased_use/294 =?
+     (apply[unyielding] (field_imm 0 (global Toploop!)) "aliased_use")
    match_guard/390 =
      (function {nlocal = 0}
        r/392[value<(consts ()) (non_consts ([0: *, *]))>]
@@ -425,16 +442,17 @@ let match_guard r =
          (if (caml_string_equal y/393 "")
            (let
              (r/466 =[value<(consts ()) (non_consts ([0: *, *]))>]
-                (apply aliased_use/294 r/392))
+                (apply[unyielding] aliased_use/294 r/392))
              (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*)
                r/466 y/393))
            (let
              (y/394 =o? (field_mut 1 r/392)
               r/467 =[value<(consts ()) (non_consts ([0: *, *]))>]
-                (apply unique_use/297 r/392))
+                (apply[unyielding] unique_use/297 r/392))
              (makeblock 0 (value<(consts ()) (non_consts ([0: *, *]))>,*)
                r/467 y/394))))))
-  (apply (field_imm 1 (global Toploop!)) "match_guard" match_guard/390))
+  (apply[unyielding] (field_imm 1 (global Toploop!)) "match_guard"
+    match_guard/390))
 val match_guard : record @ unique -> record * string = <fun>
 |}]
 
