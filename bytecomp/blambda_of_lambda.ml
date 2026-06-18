@@ -1211,7 +1211,7 @@ let thunkify_compilation_unit_initialization ~thunk_name blam =
           { func = Var thunk;
             args = [Const Const_null];
             nontail = false;
-            yielding = May_yield
+            yielding = Unyielding
           }
     }
 
