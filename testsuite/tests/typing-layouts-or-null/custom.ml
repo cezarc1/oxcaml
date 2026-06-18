@@ -447,7 +447,7 @@ Line 1, characters 22-32:
                           ^^^^^^^^^^
 Error: This type "float gadt" should be an instance of type
          "('a : any separable)"
-       The layout of float gadt is value maybe_separable maybe_null
+       The layout of float gadt is value_or_null
          because of the definition of gadt at lines 1-4, characters 0-11.
        But the layout of float gadt must be a sublayout of any separable
          because of the definition of accepts_sep at line 2, characters 0-41.
@@ -461,10 +461,10 @@ Line 1, characters 27-37:
                                ^^^^^^^^^^
 Error: This type "float gadt" should be an instance of type
          "('a : value_or_null non_float)"
-       The layout of float gadt is value maybe_separable maybe_null
+       The layout of float gadt is value_or_null
          because of the definition of gadt at lines 1-4, characters 0-11.
        But the layout of float gadt must be a sublayout of
-           value non_float maybe_null
+           value_or_null non_float
          because of the definition of accepts_nonfloat at line 3, characters 0-56.
 |}]
 
@@ -516,7 +516,7 @@ Line 1, characters 29-49:
                                  ^^^^^^^^^^^^^^^^^^^^
 Error: This type "int existential_gadt" should be an instance of type
          "('a : any separable)"
-       The layout of int existential_gadt is value maybe_separable maybe_null
+       The layout of int existential_gadt is value_or_null
          because of the definition of existential_gadt at lines 1-4, characters 0-11.
        But the layout of int existential_gadt must be a sublayout of
            any separable
@@ -531,10 +531,10 @@ Line 1, characters 34-54:
                                       ^^^^^^^^^^^^^^^^^^^^
 Error: This type "int existential_gadt" should be an instance of type
          "('a : value_or_null non_float)"
-       The layout of int existential_gadt is value maybe_separable maybe_null
+       The layout of int existential_gadt is value_or_null
          because of the definition of existential_gadt at lines 1-4, characters 0-11.
        But the layout of int existential_gadt must be a sublayout of
-           value non_float maybe_null
+           value_or_null non_float
          because of the definition of accepts_nonfloat at line 3, characters 0-56.
 |}]
 
@@ -547,10 +547,10 @@ type 'a bad_gadt_payload =
 Line 3, characters 19-24:
 3 |   | Yep_bad_gadt : int t -> 'a bad_gadt_payload
                        ^^^^^
-Error: The layout of type "int t" is value maybe_separable maybe_null
+Error: The layout of type "int t" is value_or_null
          because of the definition of t at lines 1-4, characters 0-11.
        But the layout of type "int t" must be a sublayout of
-           value maybe_separable
+           value_maybe_separable
          because the payload of bad_gadt_payload has layout value.
 |}]
 
