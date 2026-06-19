@@ -70,6 +70,8 @@ external cont_set_last_fiber :
   _ cont -> last_fiber -> unit = "%setfield1"
 
 external resume : ('a, _, 'b) cont -> ('c -> 'a) -> 'c -> 'b = "%resume"
+let resume (_h : Handler.t @ local) cont f arg =
+  resume cont (fun arg -> f (Handler.unsafe_make ()) arg [@nontail]) arg
 
 type ('a,'x,'b) effc = 'a t -> ('a, 'x, 'b) cont -> last_fiber -> 'b
 
@@ -104,13 +106,14 @@ external update_cont_handler_noexc :
 
 (* Retrieve the stack from a [cont]inuation, update its handlers, and run
    [f x] using it. *)
-let with_handler cont valuec exnc (effc : 'a. ('a, _, _) effc) tickc f x =
+let with_handler (h @ local) cont valuec exnc (effc : 'a. ('a, _, _) effc)
+      tickc f x =
   resume
     (* FIXME: There's a race condition here - if multiple threads call
        [with_handler] on the same continuation at once, they could be
        interleaved, causing a segfault rather
        than an exception. *)
-    (update_cont_handler_noexc cont valuec exnc effc tickc) f x
+    h (update_cont_handler_noexc cont valuec exnc effc tickc) f x
 
 module Deep = struct
 
@@ -119,12 +122,15 @@ module Deep = struct
   type ('a,'b) continuation_ =
     | Cont : ('a,'x,'b) cont -> ('a, 'b) continuation_ [@@unboxed]
 
-  let[@inline] continue (Cont k) v = resume k (fun x-> x) v
+  let[@inline] continue (Cont k) v =
+    resume (Handler.unsafe_make ()) k (fun _h x-> x) v [@nontail]
 
-  let[@inline] discontinue (Cont k) e = resume k (fun e -> raise e) e
+  let[@inline] discontinue (Cont k) e =
+    resume (Handler.unsafe_make ()) k (fun _h e -> raise e) e [@nontail]
 
   let[@inline] discontinue_with_backtrace (Cont k) e bt =
-    resume k (fun e -> Printexc.raise_with_backtrace e bt) e
+    resume (Handler.unsafe_make ()) k
+      (fun _h e -> Printexc.raise_with_backtrace e bt) e [@nontail]
 
   type ('a,'b) handler =
     { retc: 'a -> 'b;
@@ -313,7 +319,7 @@ module Shallow = struct
       (* We need to handle [Preemption] here since it's triggered automatically
          on a timer, and might arrive while we're setting up the fiber *)
       | Preemption ->
-          resume k (fun x -> x) ()
+          resume (Handler.unsafe_make ()) k (fun _h x -> x) () [@nontail]
       | _ -> error ()
     in
     match with_stack error error effc f' () with
@@ -334,16 +340,17 @@ module Shallow = struct
       | Some f -> f (Cont k)
       | None -> reperform eff k last_fiber
     in
-    with_handler k handler.retc handler.exnc effc Null resume_fun v
+    with_handler (Handler.unsafe_make ())
+      k handler.retc handler.exnc effc Null resume_fun v [@nontail]
 
   let continue_with k v handler =
-    continue_gen k (fun x -> x) v handler
+    continue_gen k (fun _h x -> x) v handler
 
   let discontinue_with k v handler =
-    continue_gen k (fun e -> raise e) v handler
+    continue_gen k (fun _h e -> raise e) v handler
 
   let discontinue_with_backtrace k v bt handler =
-    continue_gen k (fun e -> Printexc.raise_with_backtrace e bt) v handler
+    continue_gen k (fun _h e -> Printexc.raise_with_backtrace e bt) v handler
 
   module Safe = struct
     let fiber f =
@@ -356,27 +363,28 @@ module Shallow = struct
           effc: 'c. Handler.t @ local -> 'c t
                 -> (('c,'a) continuation -> 'b) option @ local }
 
-      let continue_gen (_h : Handler.t @ local) (Cont k) resume_fun v
+      let continue_gen (h : Handler.t @ local) (Cont k) resume_fun v
               (handler : (_, _) handler) =
         let effc eff k last_fiber =
           match handler.effc (Handler.unsafe_make ()) eff with
           | Some f -> f (Cont k) [@nontail]
           | None -> reperform eff k last_fiber
         in
-        with_handler k
+        with_handler h k
           (fun x -> handler.retc (Handler.unsafe_make ()) x [@nontail])
           (fun e -> handler.exnc (Handler.unsafe_make ()) e [@nontail])
           effc Null
           resume_fun v
 
       let continue_with (h @ local) k v handler =
-        continue_gen h k (fun x -> x) v handler
+        continue_gen h k (fun _h x -> x) v handler
 
       let discontinue_with (h @ local) k v handler =
-        continue_gen h k (fun e -> raise e) v handler
+        continue_gen h k (fun _h e -> raise e) v handler
 
       let discontinue_with_backtrace (h @ local) k v bt handler =
-        continue_gen h k (fun e -> Printexc.raise_with_backtrace e bt) v handler
+        continue_gen h k (fun _h e -> Printexc.raise_with_backtrace e bt) v
+          handler
     end
   end
 
@@ -395,17 +403,18 @@ module Shallow = struct
           f (Cont k)
         | None -> reperform eff k last_fiber
       in
-      with_handler k handler.retc handler.exnc effc (This handler.tickc)
-        resume_fun v
+      with_handler (Handler.unsafe_make ())
+        k handler.retc handler.exnc effc (This handler.tickc)
+        resume_fun v [@nontail]
 
     let continue_with k v handler =
-      continue_gen k (fun x -> x) v handler
+      continue_gen k (fun _h x -> x) v handler
 
     let discontinue_with k v handler =
-      continue_gen k (fun e -> raise e) v handler
+      continue_gen k (fun _h e -> raise e) v handler
 
     let discontinue_with_backtrace k v bt handler =
-      continue_gen k (fun e -> Printexc.raise_with_backtrace e bt) v handler
+      continue_gen k (fun _h e -> Printexc.raise_with_backtrace e bt) v handler
 
     module Safe = struct
       module With_handler = struct
@@ -416,7 +425,7 @@ module Shallow = struct
                     -> (('c,'a) continuation -> 'b) option @ local;
               tickc: unit -> tick_outcome }
 
-        let continue_gen (_h : Handler.t @ local) (Cont k) resume_fun v
+        let continue_gen (h : Handler.t @ local) (Cont k) resume_fun v
               (handler : (_, _) handler) =
           let effc eff k last_fiber =
             match handler.effc (Handler.unsafe_make ()) eff with
@@ -425,20 +434,20 @@ module Shallow = struct
               f (Cont k) [@nontail]
             | None -> reperform eff k last_fiber
           in
-          with_handler k
+          with_handler h k
             (fun x -> handler.retc (Handler.unsafe_make ()) x [@nontail])
             (fun e -> handler.exnc (Handler.unsafe_make ()) e [@nontail])
             effc (This handler.tickc)
             resume_fun v
 
         let continue_with (h @ local) k v handler =
-          continue_gen h k (fun x -> x) v handler
+          continue_gen h k (fun _h x -> x) v handler
 
         let discontinue_with (h @ local) k v handler =
-          continue_gen h k (fun e -> raise e) v handler
+          continue_gen h k (fun _h e -> raise e) v handler
 
         let discontinue_with_backtrace (h @ local) k v bt handler =
-          continue_gen h k (fun e -> Printexc.raise_with_backtrace e bt) v
+          continue_gen h k (fun _h e -> Printexc.raise_with_backtrace e bt) v
             handler
       end
     end
