@@ -3,5 +3,4 @@ Called from Backtrace.foo in file "backtrace.ml", line 14, characters 11-27
 Called from Backtrace.bar in file "backtrace.ml", line 22, characters 4-9
 Called from Backtrace.task1 in file "backtrace.ml", line 31, characters 4-10
 Re-raised at Stdlib__Effect.Deep.discontinue_with_backtrace.(fun) in file "stdlib/effect.ml", line 133, characters 19-53
-Called from Stdlib__Effect.resume.(fun) in file "stdlib/effect.ml", line 74, characters 26-56
 Called from Backtrace.task2 in file "backtrace.ml", line 38, characters 4-16

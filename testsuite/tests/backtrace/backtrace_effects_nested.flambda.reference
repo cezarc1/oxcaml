@@ -1,4 +1,5 @@
 Raised by primitive operation at Backtrace_effects_nested.blorp in file "backtrace_effects_nested.ml", line 24, characters 2-11
+Called from Stdlib__Effect.resume in file "stdlib/effect.ml" (inlined), line 74, characters 2-61
 Called from Stdlib__Effect.Deep.continue in file "stdlib/effect.ml" (inlined), line 126, characters 4-54
 Called from Stdlib__Effect.Deep.of_continuation in file "stdlib/effect.ml" (inlined), line 154, characters 4-19
 Called from Stdlib__Effect.Deep.continue in file "stdlib/effect.ml" (inlined), line 175, characters 28-54
