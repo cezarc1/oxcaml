@@ -2,6 +2,6 @@ Raised at Stdlib.failwith in file "stdlib.ml", line 39, characters 17-33
 Called from Backtrace.foo in file "backtrace.ml", line 15, characters 11-27
 Called from Backtrace.bar in file "backtrace.ml", line 23, characters 4-9
 Called from Backtrace.task1 in file "backtrace.ml", line 32, characters 4-10
-Re-raised at Stdlib__Effect.Deep.discontinue_with_backtrace.(fun) in file "stdlib/effect.ml", line 133, characters 19-53
+Re-raised at Stdlib__Effect.Deep.discontinue_with_backtrace.(fun) in file "stdlib/effect.ml", line 141, characters 19-53
 Called from unknown location
 Called from Backtrace.task2 in file "backtrace.ml", line 39, characters 4-30

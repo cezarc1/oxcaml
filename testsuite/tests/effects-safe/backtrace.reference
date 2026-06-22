@@ -2,7 +2,7 @@ Raised at Stdlib.failwith in file "stdlib.ml" (inlined), line 39, characters 17-
 Called from Backtrace.foo in file "backtrace.ml", line 15, characters 11-27
 Called from Backtrace.bar in file "backtrace.ml", line 23, characters 4-9
 Called from Backtrace.task1 in file "backtrace.ml", line 32, characters 4-10
-Re-raised at Stdlib__Effect.Deep.discontinue_with_backtrace.(fun) in file "stdlib/effect.ml" (inlined), line 133, characters 19-53
-Called from Stdlib__Effect.resume.(fun) in file "stdlib/effect.ml", line 74, characters 26-56
+Re-raised at Stdlib__Effect.Deep.discontinue_with_backtrace.(fun) in file "stdlib/effect.ml" (inlined), line 141, characters 19-53
+Called from Stdlib__Effect.resume.(fun) in file "stdlib/effect.ml", line 82, characters 26-56
 Called from Stdlib__Effect.Safe.perform in file "stdlib/effect.ml", line 28, characters 62-73
 Called from Backtrace.task2 in file "backtrace.ml", line 39, characters 4-30

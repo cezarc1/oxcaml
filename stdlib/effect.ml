@@ -70,7 +70,15 @@ external cont_set_last_fiber :
   _ cont -> last_fiber -> unit = "%setfield1"
 
 external resume : ('a, _, 'b) cont -> ('c -> 'a) -> 'c -> 'b = "%resume"
-let[@inline] resume (_h : Handler.t @ yielding) cont f arg =
+let[@inline]
+  resume
+    (* We need [resume] to take a [Handler.t @ yielding] so that it (and things
+       that call it, such as Shallow.continue) is always inferred to be a
+       yielding function application, since resuming a continuation might
+       perform effects (since the computation in the continuation itself might
+       perform effects). This is depended on by the JSOO compiler to ensure that
+       this doesn't direct-call as opposed to being CPSed *)
+    (_h : Handler.t @ yielding) cont f arg =
   resume cont (fun arg -> f (Handler.unsafe_make ()) arg) arg
 
 type ('a,'x,'b) effc = 'a t -> ('a, 'x, 'b) cont -> last_fiber -> 'b
