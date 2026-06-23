@@ -1965,7 +1965,7 @@ module Const = struct
       Option.map (Location.map (fun x -> Separability x))
   end
 
-  let apply_scannable_axis ?prior_annot env
+  let apply_scannable_axis ?prior_annot ~warn env
       (axis : Scannable_axis.t Location.loc option) t =
     match axis with
     | None -> t
@@ -1979,7 +1979,7 @@ module Const = struct
         | Some sa ->
           let sa' = Scannable_axis.lower_axes sa axis in
           (match prior_annot with
-          | Some (abbrev, rev_axes) when Scannable_axes.equal sa sa' ->
+          | Some (abbrev, rev_axes) when warn && Scannable_axes.equal sa sa' ->
             Location.prerr_warning loc
               (Warnings.Redundant_kind_modifier
                  (Format.asprintf "%a%s" Pprintast.longident abbrev
@@ -2032,18 +2032,19 @@ module Const = struct
 
   let rec of_user_written_annotation_unchecked_level : type l r.
       use_abstract_jkinds:bool ->
+      warn:bool ->
       _ ->
       (l * r) Context_with_transl.t ->
       Parsetree.jkind_annotation ->
       (l * r) t =
-   fun ~use_abstract_jkinds env context jkind ->
+   fun ~use_abstract_jkinds ~warn env context jkind ->
     let loc = jkind.pjka_loc in
     match jkind.pjka_desc with
     | Pjk_abbreviation (name, sa_annot) ->
       let p, _ = Env.lookup_jkind ~use:use_abstract_jkinds ~loc name.txt env in
       let jkind_without_sa = of_path p in
       if
-        sa_annot <> []
+        warn && sa_annot <> []
         &&
         match get_layout_result env jkind_without_sa with
         | Ok layout -> not (Layout.Const.is_scannable_or_any layout)
@@ -2056,7 +2057,7 @@ module Const = struct
       let jkind, _abbrev =
         List.fold_left
           (fun (jkind, rev_axes) axis ->
-            ( apply_scannable_axis ~prior_annot:(name.txt, rev_axes) env
+            ( apply_scannable_axis ~prior_annot:(name.txt, rev_axes) ~warn env
                 (Some (transl_scannable_axis axis))
                 jkind,
               axis.Location.txt :: rev_axes ))
@@ -2065,34 +2066,34 @@ module Const = struct
       allow_left jkind |> allow_right
     | Pjk_mod (base, modifiers) ->
       let base =
-        of_user_written_annotation_unchecked_level ~use_abstract_jkinds env
-          context base
+        of_user_written_annotation_unchecked_level ~use_abstract_jkinds ~warn
+          env context base
       in
       (* for each mode, lower the corresponding modal bound to be that
          mode *)
       let mod_bounds, (nullability, separability) =
-        Typemode.transl_mod_bounds modifiers
+        Typemode.transl_mod_bounds ~warn modifiers
       in
       let mod_bounds = Mod_bounds.meet base.mod_bounds mod_bounds in
       { base = base.base; mod_bounds; with_bounds = No_with_bounds }
       (* For scannable axes in mod bounds, we do not print redundancy warnings,
          as scannable axes in mod bounds will be deprecated anyway *)
-      |> apply_scannable_axis env
+      |> apply_scannable_axis ~warn env
            (Scannable_axis.annot_of_nullability_annot nullability)
-      |> apply_scannable_axis env
+      |> apply_scannable_axis ~warn env
            (Scannable_axis.annot_of_separability_annot separability)
     | Pjk_product ts ->
       let jkinds =
         List.map
-          (of_user_written_annotation_unchecked_level ~use_abstract_jkinds env
-             context)
+          (of_user_written_annotation_unchecked_level ~use_abstract_jkinds ~warn
+             env context)
           ts
       in
       jkind_of_product_annotations ~loc env jkinds
     | Pjk_with (base, type_, modalities) -> (
       let base =
-        of_user_written_annotation_unchecked_level ~use_abstract_jkinds env
-          context base
+        of_user_written_annotation_unchecked_level ~use_abstract_jkinds ~warn
+          env context base
       in
       match context with
       | Right_jkind c -> raise ~loc:type_.ptyp_loc (With_on_right c)
@@ -2148,11 +2149,11 @@ module Const = struct
        that needs a different extension level. *)
     | Layout l -> scan_layout l
 
-  let of_user_written_annotation ~use_abstract_jkinds env ~context
-      (annot : Parsetree.jkind_annotation) =
+  let of_user_written_annotation ?(warn = true) ~use_abstract_jkinds env
+      ~context (annot : Parsetree.jkind_annotation) =
     Env.check_no_open_quotations annot.pjka_loc env Jkind_annotation_qt;
     let const =
-      of_user_written_annotation_unchecked_level ~use_abstract_jkinds env
+      of_user_written_annotation_unchecked_level ~use_abstract_jkinds ~warn env
         context annot
     in
     let required_layouts_level = get_required_layouts_level context const in
@@ -2258,10 +2259,11 @@ let of_annotated_const ~context ~annotation ~const ~const_loc =
     ~why:(Annotated (context, const_loc))
     const ~quality:Not_best ~ran_out_of_fuel_during_normalize:false
 
-let of_annotation_lr ~use_abstract_jkinds ~context env
+let of_annotation_lr ?(warn = true) ~use_abstract_jkinds ~context env
     (annot : Parsetree.jkind_annotation) =
   let const =
-    Const.of_user_written_annotation ~use_abstract_jkinds ~context env annot
+    Const.of_user_written_annotation ~warn ~use_abstract_jkinds ~context env
+      annot
   in
   of_annotated_const ~annotation:(Some annot) ~const ~const_loc:annot.pjka_loc
     ~context
@@ -2282,13 +2284,13 @@ let of_attribute ~context
   of_annotated_const ~context ~annotation:(mk_annot name) ~const
     ~const_loc:attribute.loc
 
-let of_type_decl ?(use_abstract_jkinds = true) ~context ~transl_type env
-    (decl : Parsetree.type_declaration) =
+let of_type_decl ?(use_abstract_jkinds = true) ?(warn = true) ~context
+    ~transl_type env (decl : Parsetree.type_declaration) =
   let context = Context_with_transl.Left_jkind (transl_type, context) in
   let jkind_of_annotation =
     decl.ptype_jkind_annotation
     |> Option.map (fun annot ->
-        of_annotation_lr ~use_abstract_jkinds ~context env annot, annot)
+        of_annotation_lr ~warn ~use_abstract_jkinds ~context env annot, annot)
   in
   let jkind_of_attribute =
     Builtin_attributes.jkind decl.ptype_attributes
@@ -2330,10 +2332,11 @@ let of_type_decl_overapproximate_unknown ~context env
     (* CR with-kinds: we could still compute the layout here. *)
     Some (Builtin.any ~why:Overapproximation_of_with_bounds)
   | _ ->
-    (* CR with-kinds: any warnings we get while parsing here will
-       be raised again when doing the non-approximated jkind computation. *)
-    Warnings.without_warnings (fun () ->
-        of_type_decl ~use_abstract_jkinds:false ~context ~transl_type env decl)
+    (* Suppress redundant-modifier/-kind-modifier warnings here: this is an
+       approximation pass, and the same annotation is parsed again (with
+       [~warn:true]) during the non-approximated jkind computation. *)
+    of_type_decl ~use_abstract_jkinds:false ~warn:false ~context ~transl_type
+      env decl
     |> Option.map fst
 
 let for_unboxed_record_with_updates lbls =
