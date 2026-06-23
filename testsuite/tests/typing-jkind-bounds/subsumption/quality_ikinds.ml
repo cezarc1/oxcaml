@@ -104,7 +104,7 @@ Line 4, characters 0-36:
 Error: This type definition does not satisfy its kind annotation
          value mod global
            with a,
-       because u is not mod global.
+       because u does not cross locality, uniqueness, forkable, and yielding.
 |}]
 
 module F (M : sig type t end) = struct

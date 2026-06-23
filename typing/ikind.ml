@@ -684,71 +684,10 @@ let axes_of_poly poly =
   Ldd.round_up poly |> Axis_lattice.non_bot_axes
   |> List.map Axis_lattice.axis_number_to_axis_packed
 
-let axes_of_axis_lattice lat =
-  Axis_lattice.non_bot_axes lat
-  |> List.map Axis_lattice.axis_number_to_axis_packed
-
 let axes_in_violation_order ~violating_axes axes =
   List.filter
     (fun violating_axis -> List.exists (same_axis violating_axis) axes)
     violating_axes
-
-let explicit_modes_of_jkind_annotation annotation =
-  let rec loop acc (annotation : Parsetree.jkind_annotation) =
-    match annotation.pjka_desc with
-    | Pjk_mod (base, modes) ->
-      let acc = loop acc base in
-      List.fold_left
-        (fun acc { Location.txt = Parsetree.Mode mode; _ } -> mode :: acc)
-        acc modes
-    | Pjk_with (base, _, _) -> loop acc base
-    | Pjk_product annotations -> List.fold_left loop acc annotations
-    | Pjk_default | Pjk_abbreviation _ | Pjk_kind_of _ -> acc
-  in
-  match annotation with
-  | None -> []
-  | Some annotation -> List.rev (loop [] annotation)
-
-let axes_constrained_by_mode mode =
-  let mode = { Location.txt = Parsetree.Mode mode; loc = Location.none } in
-  let mod_bounds, _ = Typemode.transl_mod_bounds [mode] in
-  Jkind.Mod_bounds.to_axis_lattice mod_bounds
-  |> Axis_lattice.co_sub Axis_lattice.top
-  |> axes_of_axis_lattice
-
-let mode_mentions_axes mode axes =
-  let mode_axes = axes_constrained_by_mode mode in
-  List.exists (fun axis -> List.exists (same_axis axis) mode_axes) axes
-
-let simple_mode_rank = function
-  | "local" | "global" -> Some 0
-  | "unique" | "aliased" -> Some 1
-  | "once" | "many" -> Some 2
-  | "nonportable" | "corruptible" | "shareable" | "portable" -> Some 3
-  | "uncontended" | "corrupted" | "shared" | "contended" -> Some 4
-  | "unforkable" | "forkable" -> Some 5
-  | "yielding" | "unyielding" -> Some 6
-  | "immutable" | "read" | "write" | "read_write" -> Some 7
-  | "stateless" | "reading" | "writing" | "stateful" -> Some 8
-  | _ -> None
-
-let canonicalize_simple_modes modes =
-  match List.map simple_mode_rank modes with
-  | ranks when List.for_all Option.is_some ranks ->
-    List.combine ranks modes
-    |> List.stable_sort (fun (rank1, _) (rank2, _) ->
-        Int.compare (Option.get rank1) (Option.get rank2))
-    |> List.map snd
-  | _ -> modes
-
-let format_required_mod_bounds ~annotation axes =
-  match
-    explicit_modes_of_jkind_annotation annotation
-    |> List.filter (fun mode -> mode_mentions_axes mode axes)
-  with
-  | [] -> None
-  | modes ->
-    modes |> canonicalize_simple_modes |> String.concat " " |> Option.some
 
 type mode_crossing_error =
   { origin : string option;
@@ -836,19 +775,15 @@ let pp_residual_provenance_decomposition ~provenance_names (residual : Ldd.node)
         Format.asprintf "%s: %s" name (Ldd.pp coeff))
     |> String.concat "\n"
 
-let pp_provenance_residual ~annotation ppf { ty; axes } =
-  match format_required_mod_bounds ~annotation axes with
-  | None ->
-    Format_doc.fprintf ppf "@[<hov 2>%s does not cross %a@]" ty
-      pp_axis_list_prose axes
-  | Some required_mod_bounds ->
-    Format_doc.fprintf ppf "@[<hov 2>%s is not mod %s@]" ty required_mod_bounds
+let pp_provenance_residual ppf { ty; axes } =
+  Format_doc.fprintf ppf "@[<hov 2>%s does not cross %a@]" ty pp_axis_list_prose
+    axes
 
-let pp_provenance_residual_bullets ~annotation ppf entries =
+let pp_provenance_residual_bullets ppf entries =
   List.iteri
     (fun i entry ->
       if i > 0 then Format_doc.fprintf ppf "@;";
-      Format_doc.fprintf ppf "- %a" (pp_provenance_residual ~annotation) entry)
+      Format_doc.fprintf ppf "- %a" pp_provenance_residual entry)
     entries
 
 let pp_type_definition_kind_annotation env ppf super_jkind =
@@ -877,16 +812,12 @@ let report_provenance_mode_crossing_error env ppf
     Some
       (Format_doc.fprintf ppf "@[<v>%a@;because %a.@]"
          (pp_type_definition_kind_annotation env)
-         super_jkind
-         (pp_provenance_residual ~annotation:super_jkind.annotation)
-         entry)
+         super_jkind pp_provenance_residual entry)
   | Some entries ->
     Some
       (Format_doc.fprintf ppf "@[<v>%a@;because@;%a@]"
          (pp_type_definition_kind_annotation env)
-         super_jkind
-         (pp_provenance_residual_bullets ~annotation:super_jkind.annotation)
-         entries)
+         super_jkind pp_provenance_residual_bullets entries)
 
 let report_mode_crossing_error ~offender env ppf
     { origin;
