@@ -660,9 +660,7 @@ let make_gadt_payload_projector ~(decl_params : Types.type_expr list)
           let local_subst = Hashtbl.create (Hashtbl.length local_vars) in
           List.iter2
             (fun decl_param res_arg ->
-              add_plain_var_projection
-                ~local_vars
-                ~local_subst
+              add_plain_var_projection ~local_vars ~local_subst
                 ~lhs_kind:(decl_param_kind decl_param)
                 res_arg)
             decl_params res_args;
@@ -681,8 +679,7 @@ let make_gadt_payload_projector ~(decl_params : Types.type_expr list)
             match name with
             | Ldd.Name.Param id -> (
               match Hashtbl.find_opt local_subst id with
-              | Some projected ->
-                Ldd.meet projected (local_bound id)
+              | Some projected -> Ldd.meet projected (local_bound id)
               | None ->
                 if Hashtbl.mem local_vars id
                 then local_bound id
