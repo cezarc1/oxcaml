@@ -238,7 +238,10 @@ let constrain_or_null_payload ~env ~path payload_ty payload_loc =
   match Ctype.constrain_type_jkind env payload_ty required with
   | Ok () -> ()
   | Error err ->
-    raise (Error (payload_loc, Jkind_mismatch_of_type (env, payload_ty, err)))
+    raise
+      (Error
+         ( payload_loc,
+           Jkind_mismatch_of_type (env, payload_ty, Ikind.Jkind_error err) ))
 
 (* [make_params] creates sort variables - these can be defaulted away (as in
    transl_type_decl) or unified with existing sort-variable-free types (as in
@@ -1043,7 +1046,7 @@ let transl_declaration env sdecl (id, uid) =
         Jkind.Builtin.value ~why:Default_type_jkind
       | Ptype_variant scstrs ->
         if or_null then begin
-          check_or_null_variant_shape path params sdecl scstrs;
+          check_or_null_variant_shape sdecl scstrs;
           match sdecl.ptype_params, params with
           | [({ ptyp_desc = Ptyp_var (_, _);
                 ptyp_loc;

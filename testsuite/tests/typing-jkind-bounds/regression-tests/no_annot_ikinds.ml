@@ -14,5 +14,5 @@ Lines 1-3, characters 0-11:
 3 | [@@unboxed]
 Error: This type definition does not satisfy its kind annotation
          value_or_null mod aliased,
-       because 'a does not cross uniqueness.
+       because 'a is not mod aliased.
 |}]

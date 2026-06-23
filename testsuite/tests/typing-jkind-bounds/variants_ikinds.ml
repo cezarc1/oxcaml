@@ -243,7 +243,7 @@ Line 1, characters 0-61:
 1 | type ('a : value mod portable) t : value mod many = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod many,
-       because 'a does not cross linearity.
+       because 'a is not mod many.
 |}]
 
 type ('a : value mod global) t : value mod global = Foo of 'a
@@ -252,7 +252,7 @@ Line 1, characters 0-61:
 1 | type ('a : value mod global) t : value mod global = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod global,
-       because this variant type does not cross locality and uniqueness.
+       because this variant type is not mod global.
 |}]
 
 type ('a : value mod aliased) t : value mod aliased = Foo of 'a
@@ -261,7 +261,7 @@ Line 1, characters 0-63:
 1 | type ('a : value mod aliased) t : value mod aliased = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod aliased,
-       because this variant type does not cross uniqueness.
+       because this variant type is not mod aliased.
 |}]
 
 type ('a : value mod external_) t : value mod external_ = Foo of 'a
@@ -270,7 +270,7 @@ Line 1, characters 0-67:
 1 | type ('a : value mod external_) t : value mod external_ = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod external_,
-       because this variant type does not cross externality.
+       because this variant type is not mod external_.
 |}]
 
 type t : sync_data = Foo of { mutable x : int ref [@atomic] }
@@ -344,7 +344,7 @@ Line 1, characters 0-48:
 Error: This type definition does not satisfy its kind annotation
          value mod global
            with 'a,
-       because this variant type does not cross locality and uniqueness.
+       because this variant type is not mod global.
 |}]
 
 type 'a t : value mod aliased with 'a = Foo of 'a
@@ -355,7 +355,7 @@ Line 1, characters 0-49:
 Error: This type definition does not satisfy its kind annotation
          value mod aliased
            with 'a,
-       because this variant type does not cross uniqueness.
+       because this variant type is not mod aliased.
 |}]
 
 type 'a t : value mod external_ with 'a = Foo of 'a
@@ -366,7 +366,7 @@ Line 1, characters 0-51:
 Error: This type definition does not satisfy its kind annotation
          value mod external_
            with 'a,
-       because this variant type does not cross externality.
+       because this variant type is not mod external_.
 |}]
 
 (**** Test 3: Variant values cross when appropriate ****)

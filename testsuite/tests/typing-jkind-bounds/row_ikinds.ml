@@ -333,9 +333,8 @@ Error: This type definition does not satisfy its kind annotation
          value mod everything non_float
            with [ `A of string ] t1,
        because
-       - this variant type does not cross locality, uniqueness,
-           and externality
-       - string does not cross locality, uniqueness, and externality
+       - this variant type is not mod everything
+       - string is not mod everything
 |}]
 
 type 'a t1 = [> `A of string | `B of int ] as 'a
@@ -365,9 +364,8 @@ Error: This type definition does not satisfy its kind annotation
          value mod everything non_float
            with [ `A of string | `B of int | `C ] t1,
        because
-       - this variant type does not cross locality, uniqueness,
-           and externality
-       - string does not cross locality, uniqueness, and externality
+       - this variant type is not mod everything
+       - string is not mod everything
 |}]
 
 module type S = sig
