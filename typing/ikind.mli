@@ -35,11 +35,7 @@ val report_subjkind_error_with_offender :
   unit
 
 val report_subjkind_error_with_name :
-  name:string ->
-  Env.t ->
-  Format_doc.formatter ->
-  subjkind_error ->
-  unit
+  name:string -> Env.t -> Format_doc.formatter -> subjkind_error -> unit
 
 val sub_jkind_l :
   ?allow_any_crossing:bool ->
