@@ -126,8 +126,8 @@ Line 2, characters 0-53:
 2 | type ('a, 'b) t : immutable_data with 'a = ('a, 'b) u
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'b does not cross linearity, contention, portability,
-                 forkable, yielding, statefulness, and visibility.
+       because 'b is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type ('a, 'b) t : immutable_data with 'a with 'b
@@ -585,7 +585,7 @@ Line 3, characters 0-62:
 3 | type should_fail_too : immutable_data with r = [`A of int ref]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with r,
-       because int ref does not cross contention and visibility.
+       because int ref is not mod contended immutable.
 |}]
 
 module M : sig
@@ -600,7 +600,7 @@ Line 3, characters 2-42:
 3 |   type t : immutable_data with r = int ref
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with r,
-       because int ref does not cross contention and visibility.
+       because int ref is not mod contended immutable.
 |}]
 
 type should_likewise_fail : immutable_data = (int ref * (int -> int))

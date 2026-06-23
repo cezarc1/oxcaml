@@ -717,8 +717,8 @@ Line 1, characters 0-40:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod global,
        because
-       - this record type does not cross locality and uniqueness
-       - string does not cross locality and uniqueness
+       - this record type is not mod global aliased
+       - string is not mod global aliased
 |}]
 
 type t : any mod aliased = { x : string }
@@ -728,8 +728,8 @@ Line 1, characters 0-41:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod aliased,
        because
-       - this record type does not cross uniqueness
-       - string does not cross uniqueness
+       - this record type is not mod aliased
+       - string is not mod aliased
 |}]
 
 type t : any mod external_ = { x : string }
@@ -739,8 +739,8 @@ Line 1, characters 0-43:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod external_,
        because
-       - this record type does not cross externality
-       - string does not cross externality
+       - this record type is not mod external_
+       - string is not mod external_
 |}]
 
 type t : any mod many = { x : string }
@@ -758,7 +758,7 @@ Line 1, characters 0-39:
 1 | type t : any mod many = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod many,
-       because t_value does not cross linearity.
+       because t_value is not mod many.
 |}]
 
 type t : any mod contended = { x : t_value }
@@ -767,7 +767,7 @@ Line 1, characters 0-44:
 1 | type t : any mod contended = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod contended,
-       because t_value does not cross contention.
+       because t_value is not mod contended.
 |}]
 
 type t : any mod portable = { x : t_value }
@@ -776,7 +776,7 @@ Line 1, characters 0-43:
 1 | type t : any mod portable = { x : t_value }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod portable,
-       because t_value does not cross portability.
+       because t_value is not mod portable.
 |}]
 
 type t : any mod many contended portable global = { x : t_value }
@@ -787,9 +787,9 @@ Line 1, characters 0-65:
 Error: This type definition does not satisfy its kind annotation
          any mod global many portable contended,
        because
-       - this record type does not cross locality and uniqueness
-       - t_value does not cross locality, uniqueness, linearity, contention,
-           portability, forkable, and yielding
+       - this record type is not mod global aliased
+       - t_value is not mod global aliased many contended portable forkable
+           unyielding
 |}]
 
 type u : immediate
@@ -829,7 +829,7 @@ Line 1, characters 0-37:
 1 | type t : any mod global = { x : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod global,
-       because this record type does not cross locality and uniqueness.
+       because this record type is not mod global aliased.
 |}]
 
 type t : any mod external_ = { x : int }
@@ -838,7 +838,7 @@ Line 1, characters 0-40:
 1 | type t : any mod external_ = { x : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod external_,
-       because this record type does not cross externality.
+       because this record type is not mod external_.
 |}]
 
 type t : any mod aliased = { x : int }
@@ -847,7 +847,7 @@ Line 1, characters 0-38:
 1 | type t : any mod aliased = { x : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod aliased,
-       because this record type does not cross uniqueness.
+       because this record type is not mod aliased.
 |}]
 
 type t : any mod global = { x : int } [@@unboxed]
@@ -895,7 +895,7 @@ Line 1, characters 0-47:
 1 | type t : any mod global = { x : u } [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod global,
-       because u does not cross locality, uniqueness, forkable, and yielding.
+       because u is not mod global aliased forkable unyielding.
 |}]
 
 type t : any mod portable = { x : u } [@@unboxed]
@@ -904,7 +904,7 @@ Line 1, characters 0-49:
 1 | type t : any mod portable = { x : u } [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod portable,
-       because u does not cross portability.
+       because u is not mod portable.
 |}]
 
 type t : any mod contended = { x : u } [@@unboxed]
@@ -913,7 +913,7 @@ Line 1, characters 0-50:
 1 | type t : any mod contended = { x : u } [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod contended,
-       because u does not cross contention.
+       because u is not mod contended.
 |}]
 
 type t : any mod external_ = { x : u } [@@unboxed]
@@ -922,7 +922,7 @@ Line 1, characters 0-50:
 1 | type t : any mod external_ = { x : u } [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod external_,
-       because u does not cross externality.
+       because u is not mod external_.
 |}]
 
 type t : any mod many = { x : u } [@@unboxed]
@@ -931,7 +931,7 @@ Line 1, characters 0-45:
 1 | type t : any mod many = { x : u } [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod many,
-       because u does not cross linearity.
+       because u is not mod many.
 |}]
 
 type t : any mod aliased = { x : u } [@@unboxed]
@@ -940,7 +940,7 @@ Line 1, characters 0-48:
 1 | type t : any mod aliased = { x : u } [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod aliased,
-       because u does not cross uniqueness.
+       because u is not mod aliased.
 |}]
 
 type t : value mod global = { x : int } [@@unboxed]
@@ -964,8 +964,8 @@ Line 1, characters 0-63:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod global,
        because
-       - this record type does not cross locality and uniqueness
-       - mutable field x : 'a does not cross locality and uniqueness
+       - this record type is not mod global aliased
+       - mutable field x : 'a is not mod global aliased
 |}]
 
 type ('a : immediate) t : value mod aliased = { mutable x : 'a }
@@ -975,8 +975,8 @@ Line 1, characters 0-64:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod aliased,
        because
-       - this record type does not cross uniqueness
-       - mutable field x : 'a does not cross uniqueness
+       - this record type is not mod aliased
+       - mutable field x : 'a is not mod aliased
 |}]
 
 type ('a : immediate) t : value mod contended = { mutable x : 'a }
@@ -985,7 +985,7 @@ Line 1, characters 0-66:
 1 | type ('a : immediate) t : value mod contended = { mutable x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod contended,
-       because mutable field x : 'a does not cross contention.
+       because mutable field x : 'a is not mod contended.
 |}]
 
 type ('a : immediate) t : value mod external_ = { mutable x : 'a }
@@ -995,8 +995,8 @@ Line 1, characters 0-66:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod external_,
        because
-       - this record type does not cross externality
-       - mutable field x : 'a does not cross externality
+       - this record type is not mod external_
+       - mutable field x : 'a is not mod external_
 |}]
 
 type ('a : immediate) t : value mod external64 = { mutable x : 'a }
@@ -1006,8 +1006,8 @@ Line 1, characters 0-67:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod external64,
        because
-       - this record type does not cross externality
-       - mutable field x : 'a does not cross externality
+       - this record type is not mod external_
+       - mutable field x : 'a is not mod external_
 |}]
 
 (*************************************)
@@ -1043,7 +1043,7 @@ Line 1, characters 0-43:
 1 | type t : any mod aliased = Foo of int | Bar
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod aliased,
-       because this variant type does not cross uniqueness.
+       because this variant type is not mod aliased.
 |}]
 
 type t : any mod global = Foo of int | Bar
@@ -1052,7 +1052,7 @@ Line 1, characters 0-42:
 1 | type t : any mod global = Foo of int | Bar
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod global,
-       because this variant type does not cross locality and uniqueness.
+       because this variant type is not mod global aliased.
 |}]
 
 
@@ -1062,7 +1062,7 @@ Line 1, characters 0-45:
 1 | type t : any mod external_ = Foo of int | Bar
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod external_,
-       because this variant type does not cross externality.
+       because this variant type is not mod external_.
 |}]
 
 type t : any mod portable = Foo of bool [@@unboxed]
@@ -1093,7 +1093,7 @@ Line 1, characters 0-54:
 1 | type t : any mod portable = Foo of t_value [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation any mod portable,
-       because t_value does not cross portability.
+       because t_value is not mod portable.
 |}]
 
 (***********************************************)
@@ -1193,7 +1193,7 @@ Line 1, characters 0-53:
 1 | type 'a t : value mod aliased = { x : 'a @@ aliased }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod aliased,
-       because this record type does not cross uniqueness.
+       because this record type is not mod aliased.
 |}]
 
 type 'a t : value mod global = { x : 'a @@ global }
@@ -1202,7 +1202,7 @@ Line 1, characters 0-51:
 1 | type 'a t : value mod global = { x : 'a @@ global }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod global,
-       because this record type does not cross locality and uniqueness.
+       because this record type is not mod global aliased.
 |}]
 
 (*****************************)
@@ -1481,7 +1481,7 @@ Line 1, characters 0-52:
 1 | type 'a t : value mod global = Foo of 'a [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod global,
-       because 'a does not cross locality, uniqueness, forkable, and yielding.
+       because 'a is not mod global aliased forkable unyielding.
 |}]
 (* CR layouts v2.8: this should be accepted; 'a should be inferred to have kind
   value mod global. Internal ticket 5120. *)
@@ -1493,8 +1493,8 @@ Line 1, characters 0-41:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod global,
        because
-       - this record type does not cross locality and uniqueness
-       - 'a does not cross locality, uniqueness, forkable, and yielding
+       - this record type is not mod global aliased
+       - 'a is not mod global aliased forkable unyielding
 |}]
 
 type 'a t : value mod many = { x : 'a }
@@ -1503,7 +1503,7 @@ Line 1, characters 0-39:
 1 | type 'a t : value mod many = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod many,
-       because 'a does not cross linearity.
+       because 'a is not mod many.
 |}]
 
 (*************************************)
@@ -1780,7 +1780,7 @@ Line 4, characters 0-68:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1796,7 +1796,7 @@ Line 4, characters 0-67:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1814,7 +1814,7 @@ Line 5, characters 0-67:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1830,7 +1830,7 @@ Line 4, characters 0-68:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1846,7 +1846,7 @@ Line 4, characters 0-68:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type 'a t : value mod contended
@@ -1863,8 +1863,8 @@ Line 4, characters 0-77:
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
        because
-       - 'a does not cross portability
-       - 'a b does not cross portability
+       - 'a is not mod portable
+       - 'a b is not mod portable
 |}]
 
 type 'a t : value mod contended portable with 'a
@@ -1889,7 +1889,7 @@ Lines 4-9, characters 0-3:
 9 |   }
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because 'b does not cross portability.
+       because 'b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1905,7 +1905,7 @@ Line 4, characters 0-68:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1921,7 +1921,7 @@ Line 4, characters 0-68:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1947,8 +1947,8 @@ Lines 9-10, characters 0-56:
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
        because
-       - b does not cross portability
-       - d does not cross portability
+       - b is not mod portable
+       - d is not mod portable
 |}]
 
 type t : value mod contended
@@ -1964,7 +1964,7 @@ Line 4, characters 0-74:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]
 
 type t : value mod contended
@@ -1980,5 +1980,5 @@ Line 4, characters 0-74:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          value mod portable contended,
-       because b does not cross portability.
+       because b is not mod portable.
 |}]

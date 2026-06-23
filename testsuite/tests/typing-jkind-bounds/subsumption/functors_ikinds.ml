@@ -59,7 +59,7 @@ Line 4, characters 0-48:
 4 | type 'a t : immutable_data with 'a = 'a F(Ref).t
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'a F(Ref).t does not cross contention and visibility.
+       because 'a F(Ref).t is not mod contended immutable.
 |}]
 
 module Ref = struct

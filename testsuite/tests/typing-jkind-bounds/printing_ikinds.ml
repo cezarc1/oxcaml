@@ -25,8 +25,8 @@ Line 1, characters 0-36:
 1 | type 'a t : immutable_data = A of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, portability,
-                 forkable, yielding, statefulness, and visibility.
+       because 'a is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
@@ -35,8 +35,8 @@ Line 1, characters 0-61:
 1 | type ('a, 'b) t : immutable_data with 'a = { a : 'a; b : 'b }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'b does not cross linearity, contention, portability,
-                 forkable, yielding, statefulness, and visibility.
+       because 'b is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type 'a t : immutable_data = Foo of 'a @@ portable
@@ -45,8 +45,8 @@ Line 1, characters 0-50:
 1 | type 'a t : immutable_data = Foo of 'a @@ portable
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, forkable, yielding,
-                 statefulness, and visibility.
+       because 'a is not mod many contended forkable unyielding stateless
+                 immutable.
 |}]
 
 module M : sig

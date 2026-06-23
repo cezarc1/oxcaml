@@ -173,8 +173,8 @@ Line 1, characters 0-38:
 1 | type 'a t : immutable_data = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, portability,
-                 forkable, yielding, statefulness, and visibility.
+       because 'a is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type 'a t : immutable_data = Foo of { mutable x : 'a }
@@ -184,9 +184,8 @@ Line 1, characters 0-54:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
        because
-       - 'a does not cross contention, portability, statefulness,
-           and visibility
-       - mutable field x : 'a does not cross contention and visibility
+       - 'a is not mod contended portable stateless immutable
+       - mutable field x : 'a is not mod contended immutable
 |}]
 
 type t : immutable_data = Foo | Bar of int ref
@@ -195,7 +194,7 @@ Line 1, characters 0-46:
 1 | type t : immutable_data = Foo | Bar of int ref
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because int ref does not cross contention and visibility.
+       because int ref is not mod contended immutable.
 |}]
 
 type t : immutable_data = Foo of (unit -> unit)
@@ -204,8 +203,8 @@ Line 1, characters 0-47:
 1 | type t : immutable_data = Foo of (unit -> unit)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because unit -> unit does not cross linearity, portability, forkable,
-                 yielding, and statefulness.
+       because unit -> unit is not mod many portable forkable unyielding
+                 stateless.
 |}]
 
 type 'a t : immutable_data = Foo of 'a option
@@ -214,8 +213,8 @@ Line 1, characters 0-45:
 1 | type 'a t : immutable_data = Foo of 'a option
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, portability,
-                 forkable, yielding, statefulness, and visibility.
+       because 'a is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type t : immutable_data = Foo of int * int | Bar of { mutable z : int }
@@ -224,7 +223,7 @@ Line 1, characters 0-71:
 1 | type t : immutable_data = Foo of int * int | Bar of { mutable z : int }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because mutable field z : int does not cross contention and visibility.
+       because mutable field z : int is not mod contended immutable.
 |}]
 
 type t : mutable_data = Foo of { x : unit -> unit }
@@ -233,8 +232,8 @@ Line 1, characters 0-51:
 1 | type t : mutable_data = Foo of { x : unit -> unit }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation mutable_data,
-       because unit -> unit does not cross linearity, portability, forkable,
-                 yielding, and statefulness.
+       because unit -> unit is not mod many portable forkable unyielding
+                 stateless.
 |}]
 
 type ('a : value mod portable) t : value mod many = Foo of 'a
@@ -243,7 +242,7 @@ Line 1, characters 0-61:
 1 | type ('a : value mod portable) t : value mod many = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod many,
-       because 'a does not cross linearity.
+       because 'a is not mod many.
 |}]
 
 type ('a : value mod global) t : value mod global = Foo of 'a
@@ -252,7 +251,7 @@ Line 1, characters 0-61:
 1 | type ('a : value mod global) t : value mod global = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod global,
-       because this variant type does not cross locality and uniqueness.
+       because this variant type is not mod global aliased.
 |}]
 
 type ('a : value mod aliased) t : value mod aliased = Foo of 'a
@@ -261,7 +260,7 @@ Line 1, characters 0-63:
 1 | type ('a : value mod aliased) t : value mod aliased = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod aliased,
-       because this variant type does not cross uniqueness.
+       because this variant type is not mod aliased.
 |}]
 
 type ('a : value mod external_) t : value mod external_ = Foo of 'a
@@ -270,7 +269,7 @@ Line 1, characters 0-67:
 1 | type ('a : value mod external_) t : value mod external_ = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod external_,
-       because this variant type does not cross externality.
+       because this variant type is not mod external_.
 |}]
 
 type t : sync_data = Foo of { mutable x : int ref [@atomic] }
@@ -279,7 +278,7 @@ Line 1, characters 0-61:
 1 | type t : sync_data = Foo of { mutable x : int ref [@atomic] }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation sync_data,
-       because int ref does not cross contention.
+       because int ref is not mod contended.
 |}]
 
 type ('a : mutable_data) t : sync_data = Foo of { mutable x : 'a [@atomic] }
@@ -288,7 +287,7 @@ Line 1, characters 0-76:
 1 | type ('a : mutable_data) t : sync_data = Foo of { mutable x : 'a [@atomic] }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation sync_data,
-       because 'a does not cross contention.
+       because 'a is not mod contended.
 |}]
 
 (**** Test 2: Annotations with "with" are accepted when appropriate ****)
@@ -323,7 +322,7 @@ Line 1, characters 0-62:
 1 | type 'a t : immutable_data with 'a = Foo of { mutable x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because mutable field x : 'a does not cross contention and visibility.
+       because mutable field x : 'a is not mod contended immutable.
 |}]
 
 type 'a t : immutable_data with 'a = Foo of { x : 'a -> 'a }
@@ -332,8 +331,8 @@ Line 1, characters 0-60:
 1 | type 'a t : immutable_data with 'a = Foo of { x : 'a -> 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'a -> 'a does not cross linearity, portability, forkable,
-                 yielding, and statefulness.
+       because 'a -> 'a is not mod many portable forkable unyielding
+                 stateless.
 |}]
 
 type 'a t : value mod global with 'a = Foo of 'a
@@ -344,7 +343,7 @@ Line 1, characters 0-48:
 Error: This type definition does not satisfy its kind annotation
          value mod global
            with 'a,
-       because this variant type does not cross locality and uniqueness.
+       because this variant type is not mod global aliased.
 |}]
 
 type 'a t : value mod aliased with 'a = Foo of 'a
@@ -355,7 +354,7 @@ Line 1, characters 0-49:
 Error: This type definition does not satisfy its kind annotation
          value mod aliased
            with 'a,
-       because this variant type does not cross uniqueness.
+       because this variant type is not mod aliased.
 |}]
 
 type 'a t : value mod external_ with 'a = Foo of 'a
@@ -366,7 +365,7 @@ Line 1, characters 0-51:
 Error: This type definition does not satisfy its kind annotation
          value mod external_
            with 'a,
-       because this variant type does not cross externality.
+       because this variant type is not mod external_.
 |}]
 
 (**** Test 3: Variant values cross when appropriate ****)

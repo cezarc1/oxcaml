@@ -170,9 +170,8 @@ Line 1, characters 0-66:
 1 | type ('a, 'b) t : immutable_data with 'a = [< `X | `Y of 'a] as 'b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because [< `X | `Y of 'a ] does not cross linearity, contention,
-                 portability, forkable, yielding, statefulness,
-                 and visibility.
+       because [< `X | `Y of 'a ] is not mod many contended portable forkable
+                 unyielding stateless immutable.
 |}]
 type ('a, 'b) u : immutable_data with 'a = [> `X | `Y of 'a] as 'b
 [%%expect{|
@@ -180,9 +179,8 @@ Line 1, characters 0-66:
 1 | type ('a, 'b) u : immutable_data with 'a = [> `X | `Y of 'a] as 'b
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because [> `X | `Y of 'a ] does not cross linearity, contention,
-                 portability, forkable, yielding, statefulness,
-                 and visibility.
+       because [> `X | `Y of 'a ] is not mod many contended portable forkable
+                 unyielding stateless immutable.
 |}]
 
 (* less-than rows *)
@@ -208,9 +206,8 @@ Line 2, characters 2-83:
 2 |   type 'a t : immutable_data with 'a = private [< `A of 'a | `B of ('a * 'a) | `C ]
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because [< `A of 'a | `B of 'a * 'a | `C ] does not cross linearity,
-                 contention, portability, forkable, yielding, statefulness,
-                 and visibility.
+       because [< `A of 'a | `B of 'a * 'a | `C ] is not mod many contended
+                 portable forkable unyielding stateless immutable.
 |}]
 
 (* Tunivar-ified row variables *)
@@ -333,9 +330,8 @@ Error: This type definition does not satisfy its kind annotation
          value mod everything non_float
            with [ `A of string ] t1,
        because
-       - this variant type does not cross locality, uniqueness,
-           and externality
-       - string does not cross locality, uniqueness, and externality
+       - this variant type is not mod global aliased external_
+       - string is not mod global aliased external_
 |}]
 
 type 'a t1 = [> `A of string | `B of int ] as 'a
@@ -365,9 +361,8 @@ Error: This type definition does not satisfy its kind annotation
          value mod everything non_float
            with [ `A of string | `B of int | `C ] t1,
        because
-       - this variant type does not cross locality, uniqueness,
-           and externality
-       - string does not cross locality, uniqueness, and externality
+       - this variant type is not mod global aliased external_
+       - string is not mod global aliased external_
 |}]
 
 module type S = sig

@@ -575,7 +575,7 @@ Line 1, characters 0-44:
 1 | type t : immutable_data = { mutable x : int}
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because mutable field x : int does not cross contention and visibility.
+       because mutable field x : int is not mod contended immutable.
 |}]
 
 type ('a : mutable_data) t : immutable_data = { x : 'a }
@@ -584,7 +584,7 @@ Line 1, characters 0-56:
 1 | type ('a : mutable_data) t : immutable_data = { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross contention and visibility.
+       because 'a is not mod contended immutable.
 |}]
 
 (***************)
@@ -1016,8 +1016,8 @@ Line 2, characters 0-53:
 2 | type 'a t : immutable_data = 'a u = Foo of { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a does not cross linearity, contention, portability,
-                 forkable, yielding, statefulness, and visibility.
+       because 'a is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 (**********************************)
