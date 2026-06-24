@@ -1783,6 +1783,34 @@ Error: This type definition does not satisfy its kind annotation
        because b is not mod portable.
 |}]
 
+type 'a r : immutable_data with 'a @@ portable
+type 'a t : immutable_data with 'a r = { x : 'a }
+[%%expect {|
+type 'a r : immutable_data with 'a @@ portable
+Line 2, characters 0-49:
+2 | type 'a t : immutable_data with 'a r = { x : 'a }
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: This type definition does not satisfy its kind annotation
+         immutable_data
+           with 'a r,
+       because 'a is not mod portable.
+|}]
+
+type t : value
+type r : value
+type q : value mod portable with t = r
+[%%expect {|
+type t
+type r
+Line 3, characters 0-38:
+3 | type q : value mod portable with t = r
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: This type definition does not satisfy its kind annotation
+         value mod portable
+           with t,
+       because r is not mod portable.
+|}]
+
 type 'a portable = { portable : 'a @@ portable }
 type 'a contended = { contended : 'a @@ contended }
 type t : value
