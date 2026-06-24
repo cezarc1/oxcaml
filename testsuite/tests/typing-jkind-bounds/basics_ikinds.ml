@@ -1797,6 +1797,20 @@ Error: This type definition does not satisfy its kind annotation
                  stateless immutable.
 |}]
 
+type 'a r : immutable_data with 'a @@ portable
+type 'a t : immutable_data with 'a r = { x : 'a @@ portable }
+[%%expect {|
+type 'a r : immutable_data with 'a @@ portable
+Line 2, characters 0-61:
+2 | type 'a t : immutable_data with 'a r = { x : 'a @@ portable }
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: This type definition does not satisfy its kind annotation
+         immutable_data
+           with 'a r,
+       because 'a is not mod many contended forkable unyielding stateless
+                 immutable.
+|}]
+
 type 'a portable = { portable : 'a @@ portable }
 type 'a contended = { contended : 'a @@ contended }
 type t : value
