@@ -2277,6 +2277,9 @@ and transl_signature env {psg_items; psg_modalities; psg_loc} =
         mksig (Tsig_value tdesc) env loc,
         [Sig_value(tdesc.val_id, tdesc.val_val, Exported)],
         newenv
+    | Psig_theorem _ ->
+        Location.raise_errorf ~loc
+          "Theorem declarations are not yet supported"
     | Psig_type (rec_flag, sdecls) ->
         let (decls, newenv, _shapes) =
           Typedecl.transl_type_decl env rec_flag sdecls
