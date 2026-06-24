@@ -188,8 +188,8 @@ let co_sub (a : t) (b : t) : t =
   r lor ((r land chain3_hi_mask) lsr 1)
 
 let imply (a : t) (b : t) : t =
-  let r = (lnot a lor b) land top in
-  let invalid_chain3_hi_bits = (r land chain3_hi_mask) land lnot (r lsl 1) in
+  let r = lnot a lor b land top in
+  let invalid_chain3_hi_bits = r land chain3_hi_mask land lnot (r lsl 1) in
   r land lnot invalid_chain3_hi_bits
 
 (* Build a mask from a set of relevant axes. *)

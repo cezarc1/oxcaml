@@ -733,13 +733,14 @@ let add_provenance_residual entries { ty; mode_bounds; axes } =
     in
     let mode_bounds =
       List.fold_left
-        (fun mode_bounds entry -> Axis_lattice.meet mode_bounds entry.mode_bounds)
+        (fun mode_bounds entry ->
+          Axis_lattice.meet mode_bounds entry.mode_bounds)
         mode_bounds matching
     in
     { ty; mode_bounds; axes } :: rest
 
-let provenance_residuals ~provenance_names ~violating_axes ~sub_poly
-    ~super_poly =
+let provenance_residuals ~provenance_names ~violating_axes ~sub_poly ~super_poly
+    =
   let provenance_vars = List.map Ldd.rigid provenance_names in
   (* For a declaration [type t : bound = rhs], ikind checking compares the
      inferred ikind polynomial for [rhs] against the polynomial for [bound].
@@ -903,16 +904,9 @@ let pp_type_definition_kind_annotation env ppf super_jkind =
       pp_breakable_jkind_annotation super_jkind_single_line
 
 let report_provenance_mode_crossing_error env ppf
-    { super_jkind;
-      sub_poly;
-      super_poly;
-      provenance_names;
-      violating_axes;
-      _
-    } =
+    { super_jkind; sub_poly; super_poly; provenance_names; violating_axes; _ } =
   match
-    provenance_residuals ~provenance_names ~violating_axes ~sub_poly
-      ~super_poly
+    provenance_residuals ~provenance_names ~violating_axes ~sub_poly ~super_poly
   with
   | None | Some [] -> None
   | Some [entry] ->
@@ -1538,8 +1532,7 @@ let check_mode_crossing_polys ~origin ~sub_jkind ~super_jkind
 let subjkind_error_has_provenance_residuals = function
   | Jkind_error _ -> false
   | Mode_crossing_error
-      { sub_poly; super_poly; provenance_names; violating_axes; _ }
-    -> (
+      { sub_poly; super_poly; provenance_names; violating_axes; _ } -> (
     match
       provenance_residuals ~provenance_names ~violating_axes ~sub_poly
         ~super_poly

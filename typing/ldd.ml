@@ -380,9 +380,7 @@ module Make (V : Ordered) = struct
     if a == b || a == bot || b == top
     then top
     else if is_leaf a && is_leaf b
-    then
-      leaf
-        (Axis_lattice.imply (Unsafe.leaf_value a) (Unsafe.leaf_value b))
+    then leaf (Axis_lattice.imply (Unsafe.leaf_value a) (Unsafe.leaf_value b))
     else
       let v = min_top_var a b in
       let a_bot, a_top = split_on_var v a in

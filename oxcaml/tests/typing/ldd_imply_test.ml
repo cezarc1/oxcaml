@@ -24,8 +24,7 @@ let assert_axis_lattice label actual expected =
   then
     failwith
       (Printf.sprintf
-         "Axis_lattice check failed for %s:\nactual:   %s\nexpected: %s"
-         label
+         "Axis_lattice check failed for %s:\nactual:   %s\nexpected: %s" label
          (Axis_lattice.to_string actual)
          (Axis_lattice.to_string expected))
 
@@ -51,9 +50,7 @@ let () =
   let immutable_data = Axis_lattice.immutable_data in
   let c = L.const immutable_data in
   let d = L.const Axis_lattice.value in
-  assert_equiv "provenance variable implies constant"
-    (L.imply x c)
-    c;
+  assert_equiv "provenance variable implies constant" (L.imply x c) c;
   let implication_with_other_provenance = L.imply x (L.join c y) in
   assert_axis_lattice "round_down ignores other provenance"
     (L.round_down implication_with_other_provenance)
