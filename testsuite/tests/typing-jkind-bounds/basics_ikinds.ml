@@ -1806,6 +1806,29 @@ Error: This type definition does not satisfy its kind annotation
        - q is not mod portable
 |}]
 
+type 'a portable = { portable : 'a @@ portable }
+type 'a contended = { contended : 'a @@ contended }
+type t : value
+type q = t
+type r : value mod portable shared =
+  | Foo of int * (t * (bool -> string)) portable
+  | Bar of string * (int ref * q) contended
+[%%expect {|
+type 'a portable = { portable : 'a @@ portable; }
+type 'a contended = { contended : 'a @@ contended; }
+type t
+type q = t
+Lines 5-7, characters 0-43:
+5 | type r : value mod portable shared =
+6 |   | Foo of int * (t * (bool -> string)) portable
+7 |   | Bar of string * (int ref * q) contended
+Error: This type definition does not satisfy its kind annotation
+         value mod portable shared,
+       because
+       - t is not mod shared
+       - q is not mod portable
+|}]
+
 type t : value mod contended
 type a = t
 type b = { a : a }
