@@ -1063,7 +1063,7 @@ let transl_declaration env sdecl (id, uid) =
                     Jkind_mismatch_of_type
                       (env, param, Ikind.Jkind_error err)))
             end
-          | _ -> assert false
+          | _ -> ()
         end;
         if List.exists (fun cstr -> cstr.pcd_res <> None) scstrs then begin
           match cstrs with

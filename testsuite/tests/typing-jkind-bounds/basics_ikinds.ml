@@ -1006,8 +1006,8 @@ Line 1, characters 0-67:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod external64,
        because
-       - this record type is not mod external_
-       - mutable field x : 'a is not mod external_
+       - this record type is not mod external64
+       - mutable field x : 'a is not mod external64
 |}]
 
 (*************************************)

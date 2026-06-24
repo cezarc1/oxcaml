@@ -532,14 +532,14 @@ type ('a : float64) wrong_payload_kind : value_or_null =
 [@@or_null]
 
 [%%expect{|
-Line 3, characters 9-11:
-3 |   | B of 'a
-             ^^
+Line 1, characters 6-18:
+1 | type ('a : float64) wrong_payload_kind : value_or_null =
+          ^^^^^^^^^^^^
 Error: The layout of type "'a" is float64
          because of the annotation on 'a in the declaration of the type
                                       wrong_payload_kind.
        But the layout of type "'a" must be a value layout
-         because the payload of wrong_payload_kind has layout value.
+         because the type argument of wrong_payload_kind has layout value.
 |}]
 
 module M : sig
