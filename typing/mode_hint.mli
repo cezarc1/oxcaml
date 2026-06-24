@@ -167,6 +167,13 @@ type 'd morph =
      submode calls, each constructor only needs to store the info of its source
      pinpoint. *)
   | Crossing : ('l * 'r) morph
+  | Application_of_functor : pinpoint -> ('l * disallowed) neg morph
+      (** The identity morphism from a functor's mode to the mode of its
+          application. Carries the functor's pinpoint. The left adjoint of
+          [Functor_is_applied_at]. *)
+  | Functor_is_applied_at : pinpoint -> (disallowed * 'r) neg morph
+      (** The right adjoint of [Application_of_functor]. Carries the pinpoint of
+          the application. *)
   | Allocation_r : allocation -> (disallowed * 'r) morph
   | Allocation_l : allocation -> ('l * disallowed) morph
   | Allocation : allocation -> ('l * 'r) morph

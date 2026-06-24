@@ -46,6 +46,7 @@ module Hint_for_solver (* : Solver_intf.Hint *) = struct
       | Is_closed_by (Monadic, co) -> co.closure, Close_over (Monadic, co)
       | Is_closed_by (Comonadic, co) -> co.closure, Close_over (Comonadic, co)
       | Crossing -> pp, Crossing
+      | Application_of_functor funct_pp -> funct_pp, Functor_is_applied_at pp
       | Unknown -> (Location.none, Unknown), Unknown
       | Allocation_r loc -> pp, Allocation loc
       | Allocation loc -> pp, Allocation_l loc
@@ -68,6 +69,7 @@ module Hint_for_solver (* : Solver_intf.Hint *) = struct
       | Close_over (Monadic, co) -> co.closed, Is_closed_by (Monadic, co)
       | Close_over (Comonadic, co) -> co.closed, Is_closed_by (Comonadic, co)
       | Crossing -> pp, Crossing
+      | Functor_is_applied_at app_pp -> app_pp, Application_of_functor pp
       | Unknown -> (Location.none, Unknown), Unknown
       | Allocation_l loc -> pp, Allocation loc
       | Allocation loc -> pp, Allocation_r loc
@@ -91,6 +93,7 @@ module Hint_for_solver (* : Solver_intf.Hint *) = struct
         | Close_over (Monadic, x) -> Close_over (Monadic, x)
         | Close_over (Comonadic, x) -> Close_over (Comonadic, x)
         | Crossing -> Crossing
+        | Functor_is_applied_at p -> Functor_is_applied_at p
         | Allocation_l loc -> Allocation_l loc
         | Allocation loc -> Allocation loc
         | Contains_l (Comonadic, x) -> Contains_l (Comonadic, x)
@@ -106,6 +109,7 @@ module Hint_for_solver (* : Solver_intf.Hint *) = struct
         | Is_closed_by (Monadic, x) -> Is_closed_by (Monadic, x)
         | Is_closed_by (Comonadic, x) -> Is_closed_by (Comonadic, x)
         | Crossing -> Crossing
+        | Application_of_functor p -> Application_of_functor p
         | Allocation_r loc -> Allocation_r loc
         | Allocation loc -> Allocation loc
         | Contains_r (Comonadic, x) -> Contains_r (Comonadic, x)
@@ -123,6 +127,8 @@ module Hint_for_solver (* : Solver_intf.Hint *) = struct
         | Is_closed_by (Monadic, x) -> Is_closed_by (Monadic, x)
         | Is_closed_by (Comonadic, x) -> Is_closed_by (Comonadic, x)
         | Crossing -> Crossing
+        | Application_of_functor p -> Application_of_functor p
+        | Functor_is_applied_at p -> Functor_is_applied_at p
         | Allocation_r loc -> Allocation_r loc
         | Allocation_l loc -> Allocation_l loc
         | Allocation loc -> Allocation loc
@@ -143,6 +149,8 @@ module Hint_for_solver (* : Solver_intf.Hint *) = struct
         | Is_closed_by (Monadic, x) -> Is_closed_by (Monadic, x)
         | Is_closed_by (Comonadic, x) -> Is_closed_by (Comonadic, x)
         | Crossing -> Crossing
+        | Application_of_functor p -> Application_of_functor p
+        | Functor_is_applied_at p -> Functor_is_applied_at p
         | Allocation_l loc -> Allocation_l loc
         | Allocation_r loc -> Allocation_r loc
         | Allocation loc -> Allocation loc
@@ -4939,6 +4947,18 @@ module Report = struct
               (print_pp ~definite:true ~capitalize:false),
             pp ))
     | Crossing -> Some (Fmt.dprintf "crosses with something", pp)
+    | Application_of_functor funct_pp ->
+      print_pinpoint funct_pp
+      |> Option.map (fun print_pp ->
+          ( Fmt.dprintf "is an application of %t"
+              (print_pp ~definite:true ~capitalize:false),
+            funct_pp ))
+    | Functor_is_applied_at app_pp ->
+      print_pinpoint app_pp
+      |> Option.map (fun print_pp ->
+          ( Fmt.dprintf "is applied at %t"
+              (print_pp ~definite:true ~capitalize:false),
+            app_pp ))
     | Allocation_r alloc -> Some (print_allocation_r alloc, pp)
     | Allocation_l alloc -> Some (print_allocation_l alloc, pp)
     | Contains_l (_, contains) -> print_contains ~fixpoint contains
@@ -5061,7 +5081,7 @@ module Report = struct
     let fixpoint = equal_mode src obj a b in
     match hint with
     | Unknown | Close_over _ | Is_closed_by _ | Contains_l _ | Contains_r _
-    | Is_contained_by _ ->
+    | Is_contained_by _ | Application_of_functor _ | Functor_is_applied_at _ ->
       (* These morphisms should never be skipped *)
       ~is_skip:false, ~fixpoint
     | Skip | Crossing ->
