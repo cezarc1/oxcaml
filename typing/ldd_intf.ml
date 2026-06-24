@@ -46,6 +46,8 @@ module type S = sig
 
   val meet : node -> node -> node
 
+  val imply : node -> node -> node
+
   val sum : 'a list -> base:node -> f:('a -> node) -> node
 
   (** [sub_subsets a b] computes co-Heyting subtraction (a - b) for LDDs. *)
@@ -70,6 +72,8 @@ module type S = sig
   val leq_with_reason : node -> node -> Jkind_axis.Axis.packed list
 
   val round_up : node -> Axis_lattice.t
+
+  val round_down : node -> Axis_lattice.t
 
   val is_const : node -> bool
 

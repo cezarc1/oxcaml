@@ -681,9 +681,15 @@ let pp_breakable_jkind_annotation ppf s =
 let is_bot_poly poly = Axis_lattice.equal (Ldd.round_up poly) Axis_lattice.bot
 
 let axes_in_violation_order ~violating_axes axes =
-  List.filter
-    (fun violating_axis -> List.exists (same_axis violating_axis) axes)
-    violating_axes
+  let ordered =
+    List.filter
+      (fun violating_axis -> List.exists (same_axis violating_axis) axes)
+      violating_axes
+  in
+  let unordered =
+    List.filter (fun axis -> not (List.exists (same_axis axis) ordered)) axes
+  in
+  ordered @ unordered
 
 type mode_crossing_error =
   { origin : string option;
@@ -703,7 +709,7 @@ type subjkind_error =
 
 type provenance_residual =
   { ty : string;
-    residual_bounds : Axis_lattice.t;
+    mode_bounds : Axis_lattice.t;
     axes : Jkind_axis.Axis.packed list
   }
 
@@ -712,9 +718,9 @@ let provenance_ty_of_name (name : Ldd.Name.t) =
   | Provenance { ty; _ } -> Some ty
   | Atom _ | KAtom _ | Param _ | Unknown _ -> None
 
-let add_provenance_residual entries { ty; residual_bounds; axes } =
+let add_provenance_residual entries { ty; mode_bounds; axes } =
   match List.partition (fun entry -> String.equal entry.ty ty) entries with
-  | [], rest -> { ty; residual_bounds; axes } :: rest
+  | [], rest -> { ty; mode_bounds; axes } :: rest
   | matching, rest ->
     let axes =
       List.fold_left
@@ -725,25 +731,20 @@ let add_provenance_residual entries { ty; residual_bounds; axes } =
             axes entry.axes)
         axes matching
     in
-    let residual_bounds =
+    let mode_bounds =
       List.fold_left
-        (fun residual_bounds entry ->
-          Axis_lattice.join residual_bounds entry.residual_bounds)
-        residual_bounds matching
+        (fun mode_bounds entry -> Axis_lattice.meet mode_bounds entry.mode_bounds)
+        mode_bounds matching
     in
-    { ty; residual_bounds; axes } :: rest
+    { ty; mode_bounds; axes } :: rest
 
-let axis_set_of_axes axes =
-  List.fold_left
-    (fun set (Jkind_axis.Axis.Pack axis) -> Jkind_axis.Axis_set.add set axis)
-    Jkind_axis.Axis_set.empty axes
-
-let provenance_residuals ~provenance_names ~violating_axes residual =
+let provenance_residuals ~provenance_names ~violating_axes ~sub_poly
+    ~super_poly =
   let provenance_vars = List.map Ldd.rigid provenance_names in
   let base, coeffs =
-    Ldd.decompose_into_linear_terms ~universe:provenance_vars residual
+    Ldd.decompose_into_linear_terms ~universe:provenance_vars sub_poly
   in
-  if not (is_bot_poly base)
+  if Ldd.leq_with_reason base super_poly <> []
   then None
   else
     List.combine provenance_names coeffs
@@ -754,21 +755,19 @@ let provenance_residuals ~provenance_names ~violating_axes residual =
           match provenance_ty_of_name name with
           | None -> None
           | Some ty ->
-            let residual_bounds =
-              let violating_axes_mask =
-                axis_set_of_axes violating_axes |> Axis_lattice.of_axis_set
-              in
-              coeff |> Ldd.round_up |> Axis_lattice.meet violating_axes_mask
+            let mode_bounds = Ldd.imply coeff super_poly |> Ldd.round_down in
+            let non_top_bounds =
+              Axis_lattice.co_sub Axis_lattice.top mode_bounds
             in
-            if Axis_lattice.equal residual_bounds Axis_lattice.bot
+            if Axis_lattice.equal non_top_bounds Axis_lattice.bot
             then None
             else
               let axes =
-                residual_bounds |> Axis_lattice.non_bot_axes
+                non_top_bounds |> Axis_lattice.non_bot_axes
                 |> List.map Axis_lattice.axis_number_to_axis_packed
                 |> axes_in_violation_order ~violating_axes
               in
-              Some { ty; residual_bounds; axes })
+              Some { ty; mode_bounds; axes })
     |> List.fold_left add_provenance_residual []
     |> List.rev |> Option.some
 
@@ -841,9 +840,8 @@ let string_of_required_bound required_bounds (Jkind_axis.Axis.Pack axis) =
       (Format_doc.asprintf "%a" Jkind_axis.Externality.print
          (Axis_lattice.externality required_bounds))
 
-let pp_provenance_residual ppf { ty; residual_bounds; axes } =
-  let required_bounds = Axis_lattice.co_sub Axis_lattice.top residual_bounds in
-  match List.filter_map (string_of_required_bound required_bounds) axes with
+let pp_provenance_residual ppf { ty; mode_bounds; axes; _ } =
+  match List.filter_map (string_of_required_bound mode_bounds) axes with
   | [] ->
     Format_doc.fprintf ppf "@[<hov 2>%s does not cross %a@]" ty
       pp_axis_list_prose axes
@@ -880,8 +878,17 @@ let pp_type_definition_kind_annotation env ppf super_jkind =
       pp_breakable_jkind_annotation super_jkind_single_line
 
 let report_provenance_mode_crossing_error env ppf
-    { super_jkind; failing_poly; provenance_names; violating_axes; _ } =
-  match provenance_residuals ~provenance_names ~violating_axes failing_poly with
+    { super_jkind;
+      sub_poly;
+      super_poly;
+      provenance_names;
+      violating_axes;
+      _
+    } =
+  match
+    provenance_residuals ~provenance_names ~violating_axes ~sub_poly
+      ~super_poly
+  with
   | None | Some [] -> None
   | Some [entry] ->
     Some
@@ -1505,10 +1512,12 @@ let check_mode_crossing_polys ~origin ~sub_jkind ~super_jkind
 
 let subjkind_error_has_provenance_residuals = function
   | Jkind_error _ -> false
-  | Mode_crossing_error { failing_poly; provenance_names; violating_axes; _ }
+  | Mode_crossing_error
+      { sub_poly; super_poly; provenance_names; violating_axes; _ }
     -> (
     match
-      provenance_residuals ~provenance_names ~violating_axes failing_poly
+      provenance_residuals ~provenance_names ~violating_axes ~sub_poly
+        ~super_poly
     with
     | None | Some [] -> false
     | Some (_ :: _) -> true)
