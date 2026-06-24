@@ -1045,26 +1045,7 @@ let transl_declaration env sdecl (id, uid) =
         Ttype_abstract, Type_abstract Definition,
         Jkind.Builtin.value ~why:Default_type_jkind
       | Ptype_variant scstrs ->
-        if or_null then begin
-          check_or_null_variant_shape sdecl scstrs;
-          match sdecl.ptype_params, params with
-          | [({ ptyp_desc = Ptyp_var (_, _);
-                ptyp_loc;
-                _
-              }, _)],
-            [param] ->
-            let required = Btype.Jkind0.for_or_null_argument id in
-            begin match Ctype.constrain_type_jkind env param required with
-            | Ok () -> ()
-            | Error err ->
-              raise
-                (Error
-                   (ptyp_loc,
-                    Jkind_mismatch_of_type
-                      (env, param, Ikind.Jkind_error err)))
-            end
-          | _ -> ()
-        end;
+        if or_null then check_or_null_variant_shape sdecl scstrs;
         if List.exists (fun cstr -> cstr.pcd_res <> None) scstrs then begin
           match cstrs with
             [] -> ()

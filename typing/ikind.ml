@@ -1702,7 +1702,17 @@ let check_bound ?allow_any_crossing ?origin ~type_equal ~context env ~actual
             Jkind.sub_jkind_l ?allow_any_crossing ~type_equal ~context env
               actual bound
           with
-          | Ok () -> None
+          | Ok () ->
+            let violating_axes =
+              match actual_error with
+              | Mode_crossing_error { violating_axes; _ } -> violating_axes
+              | Jkind_error _ -> []
+            in
+            let axis_reasons = axis_disagreement_reasons violating_axes in
+            Some
+              (Jkind_error
+                 (Jkind.Violation.of_ ~context env
+                    (Jkind.Violation.Not_a_subjkind (actual, bound, axis_reasons))))
           | Error jkind_error -> Some (Jkind_error jkind_error)
         in
         best_effort_provenance_error ~fallback_error ~origin ~sub_jkind:actual
