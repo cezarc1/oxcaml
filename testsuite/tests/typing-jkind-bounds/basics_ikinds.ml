@@ -1793,22 +1793,8 @@ Line 2, characters 0-49:
 Error: This type definition does not satisfy its kind annotation
          immutable_data
            with 'a r,
-       because 'a is not mod portable.
-|}]
-
-type t : value
-type r : value
-type q : value mod portable with t = r
-[%%expect {|
-type t
-type r
-Line 3, characters 0-38:
-3 | type q : value mod portable with t = r
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Error: This type definition does not satisfy its kind annotation
-         value mod portable
-           with t,
-       because r is not mod portable.
+       because 'a is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type 'a portable = { portable : 'a @@ portable }

@@ -739,19 +739,6 @@ let add_provenance_residual entries { ty; mode_bounds; axes } =
     in
     { ty; mode_bounds; axes } :: rest
 
-(* Hidden type-constructor argument coefficients should be interpreted through
-   the public constructor bound when printing provenance residuals. Otherwise an
-   abstract type such as ['a r : immutable_data with 'a @@ portable] reports the
-   worst case for its hidden coefficient [r.1], instead of the public
-   requirement on ['a]. This does not apply to constructor bases [r.0], which
-   are ordinary contributions that can themselves be the source of the error. *)
-let use_public_constructor_argument_bounds (poly : Ldd.node) : Ldd.node =
-  Ldd.map_rigid
-    (function
-      | Atom { arg_index; _ } when arg_index > 0 -> Ldd.const Axis_lattice.top
-      | name -> Ldd.node_of_var (Ldd.rigid name))
-    poly
-
 let provenance_residuals ~provenance_names ~violating_axes ~sub_poly ~super_poly
     =
   let provenance_vars = List.map Ldd.rigid provenance_names in
@@ -762,13 +749,13 @@ let provenance_residuals ~provenance_names ~violating_axes ~sub_poly ~super_poly
      contribution [coeff] tagged by provenance variable [p], the error
      reporting question is:
 
-       What is the weakest assignment to [p] that would make this contribution
+       What is the largest assignment to [p] that would make this contribution
        satisfy the required bound?
 
      This is the right question because the provenance variable stands for the
-     mode-crossing behavior we need from the source type. Reporting a stronger
-     assignment would be true but misleading; reporting a weaker one would not
-     be enough to make the original lattice comparison pass.
+     mode-crossing behavior we need from the source type. It gives the least
+     restrictive bound that would still make the original lattice comparison
+     pass.
 
      We answer the question by first decomposing the provenance-annotated
      polynomial into an untracked base plus one coefficient per provenance
@@ -778,8 +765,9 @@ let provenance_residuals ~provenance_names ~violating_axes ~sub_poly ~super_poly
 
        meet coeff h <= super_poly
 
-     This is exactly [Ldd.imply coeff super_poly]. We then round the result down
-     to a concrete mode bound for printing. *)
+     This is exactly [Ldd.imply coeff super_poly]. The result may still contain
+     symbolic variables, so we round it down to a conservative concrete mode
+     bound for printing. *)
   let base, coeffs =
     Ldd.decompose_into_linear_terms ~universe:provenance_vars sub_poly
   in
@@ -794,10 +782,7 @@ let provenance_residuals ~provenance_names ~violating_axes ~sub_poly ~super_poly
           match provenance_ty_of_name name with
           | None -> None
           | Some ty ->
-            let mode_bounds =
-              Ldd.imply coeff super_poly
-              |> use_public_constructor_argument_bounds |> Ldd.round_down
-            in
+            let mode_bounds = Ldd.imply coeff super_poly |> Ldd.round_down in
             let non_top_bounds =
               Axis_lattice.co_sub Axis_lattice.top mode_bounds
             in
