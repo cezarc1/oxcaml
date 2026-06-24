@@ -867,16 +867,12 @@ let string_of_required_bound required_bounds (Jkind_axis.Axis.Pack axis) =
          (Axis_lattice.externality required_bounds))
 
 let pp_provenance_residual ppf { ty; mode_bounds; axes; _ } =
-  match List.filter_map (string_of_required_bound mode_bounds) axes with
-  | [] ->
-    Format_doc.fprintf ppf "@[<hov 2>%s does not cross %a@]" ty
-      pp_axis_list_prose axes
-  | modes ->
-    Format_doc.fprintf ppf "@[<hov 2>%s is not mod %a@]" ty
-      (Format_doc.pp_print_list
-         ~pp_sep:(fun ppf () -> Format_doc.fprintf ppf "@ ")
-         Format_doc.pp_print_string)
-      modes
+  let modes = List.filter_map (string_of_required_bound mode_bounds) axes in
+  Format_doc.fprintf ppf "@[<hov 2>%s is not mod %a@]" ty
+    (Format_doc.pp_print_list
+       ~pp_sep:(fun ppf () -> Format_doc.fprintf ppf "@ ")
+       Format_doc.pp_print_string)
+    modes
 
 let pp_provenance_residual_bullets ppf entries =
   List.iteri
