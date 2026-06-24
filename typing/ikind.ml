@@ -741,6 +741,31 @@ let add_provenance_residual entries { ty; mode_bounds; axes } =
 let provenance_residuals ~provenance_names ~violating_axes ~sub_poly
     ~super_poly =
   let provenance_vars = List.map Ldd.rigid provenance_names in
+  (* For a declaration [type t : bound = rhs], ikind checking compares the
+     inferred ikind polynomial for [rhs] against the polynomial for [bound].
+     When that comparison fails, we recompute [rhs] with provenance variables
+     inserted by meeting a fresh variable into each local contribution. For a
+     contribution [coeff] tagged by provenance variable [p], the error
+     reporting question is:
+
+       What is the weakest assignment to [p] that would make this contribution
+       satisfy the required bound?
+
+     This is the right question because the provenance variable stands for the
+     mode-crossing behavior we need from the source type. Reporting a stronger
+     assignment would be true but misleading; reporting a weaker one would not
+     be enough to make the original lattice comparison pass.
+
+     We answer the question by first decomposing the provenance-annotated
+     polynomial into an untracked base plus one coefficient per provenance
+     variable. If the base alone does not satisfy [super_poly], then provenance
+     cannot explain the error. Otherwise, for each coefficient [coeff], we need
+     the greatest [h] such that:
+
+       meet coeff h <= super_poly
+
+     This is exactly [Ldd.imply coeff super_poly]. We then round the result down
+     to a concrete mode bound for printing. *)
   let base, coeffs =
     Ldd.decompose_into_linear_terms ~universe:provenance_vars sub_poly
   in
