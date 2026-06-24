@@ -869,11 +869,13 @@ let string_of_required_bound required_bounds (Jkind_axis.Axis.Pack axis) =
 
 let pp_provenance_residual ppf { ty; mode_bounds; axes; _ } =
   let modes = List.filter_map (string_of_required_bound mode_bounds) axes in
-  Format_doc.fprintf ppf "@[<hov 2>%s is not mod %a@]" ty
-    (Format_doc.pp_print_list
-       ~pp_sep:(fun ppf () -> Format_doc.fprintf ppf "@ ")
-       Format_doc.pp_print_string)
-    modes
+  let mode_string = String.concat " " modes in
+  let single_line = Printf.sprintf "%s is not mod %s" ty mode_string in
+  if String.length single_line <= 70
+  then Format_doc.fprintf ppf "%s" single_line
+  else
+    Format_doc.fprintf ppf "@[<v 2>%s is not mod@;@[<hov>%a@]@]" ty
+      pp_breakable_words mode_string
 
 let pp_provenance_residual_bullets ppf entries =
   List.iteri
@@ -887,12 +889,21 @@ let pp_type_definition_kind_annotation env ppf super_jkind =
   let single_line_prefix =
     "Error: This type definition does not satisfy its kind annotation "
   in
+  let error_prefix_width = String.length "Error: " in
+  let continuation_indent = 2 in
+  let continuation_prefix_width = error_prefix_width + continuation_indent in
   if
     String.length single_line_prefix + String.length super_jkind_single_line + 1
     <= 88
   then
     Format_doc.fprintf ppf
       "This type definition does not satisfy its kind annotation %s,"
+      super_jkind_single_line
+  else if
+    continuation_prefix_width + String.length super_jkind_single_line + 1 <= 88
+  then
+    Format_doc.fprintf ppf
+      "@[<v 2>This type definition does not satisfy its kind annotation@;%s,@]"
       super_jkind_single_line
   else
     Format_doc.fprintf ppf

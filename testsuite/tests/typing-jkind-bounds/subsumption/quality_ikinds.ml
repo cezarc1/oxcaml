@@ -102,8 +102,7 @@ Line 4, characters 0-36:
 4 | type t : value mod global with a = u
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
-         value mod global
-           with a,
+         value mod global with a,
        because u is not mod global aliased forkable unyielding.
 |}]
 

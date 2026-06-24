@@ -71,8 +71,9 @@ Line 2, characters 2-70:
 2 |   type 'a t : immutable_data with 'a = Nil | Cons of 'a * 'a My_list.t
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'a My_list.t is not mod many contended portable forkable
-                 unyielding stateless immutable.
+       because 'a My_list.t is not mod
+                 many contended portable forkable unyielding stateless
+                 immutable.
 |}]
 
 module rec My_list : sig

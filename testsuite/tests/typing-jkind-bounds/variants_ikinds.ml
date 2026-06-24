@@ -173,8 +173,9 @@ Line 1, characters 0-38:
 1 | type 'a t : immutable_data = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a is not mod many contended portable forkable unyielding
-                 stateless immutable.
+       because 'a is not mod
+                 many contended portable forkable unyielding stateless
+                 immutable.
 |}]
 
 type 'a t : immutable_data = Foo of { mutable x : 'a }
@@ -203,8 +204,7 @@ Line 1, characters 0-47:
 1 | type t : immutable_data = Foo of (unit -> unit)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because unit -> unit is not mod many portable forkable unyielding
-                 stateless.
+       because unit -> unit is not mod many portable forkable unyielding stateless.
 |}]
 
 type 'a t : immutable_data = Foo of 'a option
@@ -213,8 +213,9 @@ Line 1, characters 0-45:
 1 | type 'a t : immutable_data = Foo of 'a option
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a is not mod many contended portable forkable unyielding
-                 stateless immutable.
+       because 'a is not mod
+                 many contended portable forkable unyielding stateless
+                 immutable.
 |}]
 
 type t : immutable_data = Foo of int * int | Bar of { mutable z : int }
@@ -232,8 +233,7 @@ Line 1, characters 0-51:
 1 | type t : mutable_data = Foo of { x : unit -> unit }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation mutable_data,
-       because unit -> unit is not mod many portable forkable unyielding
-                 stateless.
+       because unit -> unit is not mod many portable forkable unyielding stateless.
 |}]
 
 type ('a : value mod portable) t : value mod many = Foo of 'a
@@ -331,8 +331,7 @@ Line 1, characters 0-60:
 1 | type 'a t : immutable_data with 'a = Foo of { x : 'a -> 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'a -> 'a is not mod many portable forkable unyielding
-                 stateless.
+       because 'a -> 'a is not mod many portable forkable unyielding stateless.
 |}]
 
 type 'a t : value mod global with 'a = Foo of 'a
@@ -341,8 +340,7 @@ Line 1, characters 0-48:
 1 | type 'a t : value mod global with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
-         value mod global
-           with 'a,
+         value mod global with 'a,
        because this variant type is not mod global aliased.
 |}]
 
@@ -352,8 +350,7 @@ Line 1, characters 0-49:
 1 | type 'a t : value mod aliased with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
-         value mod aliased
-           with 'a,
+         value mod aliased with 'a,
        because this variant type is not mod aliased.
 |}]
 
@@ -363,8 +360,7 @@ Line 1, characters 0-51:
 1 | type 'a t : value mod external_ with 'a = Foo of 'a
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
-         value mod external_
-           with 'a,
+         value mod external_ with 'a,
        because this variant type is not mod external_.
 |}]
 

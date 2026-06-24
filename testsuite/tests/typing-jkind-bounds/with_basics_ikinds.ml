@@ -1016,8 +1016,9 @@ Line 2, characters 0-53:
 2 | type 'a t : immutable_data = 'a u = Foo of { x : 'a }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data,
-       because 'a is not mod many contended portable forkable unyielding
-                 stateless immutable.
+       because 'a is not mod
+                 many contended portable forkable unyielding stateless
+                 immutable.
 |}]
 
 (**********************************)
