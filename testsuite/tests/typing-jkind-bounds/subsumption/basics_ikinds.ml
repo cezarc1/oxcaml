@@ -126,9 +126,8 @@ Line 2, characters 0-53:
 2 | type ('a, 'b) t : immutable_data with 'a = ('a, 'b) u
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immutable_data with 'a,
-       because 'b is not mod
-                 many contended portable forkable unyielding stateless
-                 immutable.
+       because 'b is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type ('a, 'b) t : immutable_data with 'a with 'b

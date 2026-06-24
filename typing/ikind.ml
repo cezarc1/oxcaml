@@ -869,13 +869,11 @@ let string_of_required_bound required_bounds (Jkind_axis.Axis.Pack axis) =
 
 let pp_provenance_residual ppf { ty; mode_bounds; axes; _ } =
   let modes = List.filter_map (string_of_required_bound mode_bounds) axes in
-  let mode_string = String.concat " " modes in
-  let single_line = Printf.sprintf "%s is not mod %s" ty mode_string in
-  if String.length single_line <= 70
-  then Format_doc.fprintf ppf "%s" single_line
-  else
-    Format_doc.fprintf ppf "@[<v 2>%s is not mod@;@[<hov>%a@]@]" ty
-      pp_breakable_words mode_string
+  Format_doc.fprintf ppf "@[<hov 2>%s is not mod %a@]" ty
+    (Format_doc.pp_print_list
+       ~pp_sep:(fun ppf () -> Format_doc.fprintf ppf "@ ")
+       Format_doc.pp_print_string)
+    modes
 
 let pp_provenance_residual_bullets ppf entries =
   List.iteri

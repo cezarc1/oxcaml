@@ -788,8 +788,8 @@ Error: This type definition does not satisfy its kind annotation
          any mod global many portable contended,
        because
        - this record type is not mod global aliased
-       - t_value is not mod
-           global aliased many contended portable forkable unyielding
+       - t_value is not mod global aliased many contended portable forkable
+           unyielding
 |}]
 
 type u : immediate
@@ -1792,9 +1792,8 @@ Line 2, characters 0-49:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          immutable_data with 'a r,
-       because 'a is not mod
-                 many contended portable forkable unyielding stateless
-                 immutable.
+       because 'a is not mod many contended portable forkable unyielding
+                 stateless immutable.
 |}]
 
 type 'a r : immutable_data with 'a @@ portable
@@ -1806,7 +1805,8 @@ Line 2, characters 0-61:
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation
          immutable_data with 'a r,
-       because 'a is not mod many contended forkable unyielding stateless immutable.
+       because 'a is not mod many contended forkable unyielding stateless
+                 immutable.
 |}]
 
 type 'a portable = { portable : 'a @@ portable }
