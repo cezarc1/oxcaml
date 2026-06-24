@@ -500,9 +500,6 @@ module Make (V : Ordered) = struct
             join lo' (meet hi' d')
       | Rigid _ -> node
 
-  let imply (a : node) (b : node) : node =
-    imply_rec (inline_solved_vars a) (inline_solved_vars b)
-
   let sub_subsets (a : node) (b : node) : node =
     canonicalize ~hi:(inline_solved_vars a) ~lo:(inline_solved_vars b)
 
@@ -548,6 +545,10 @@ module Make (V : Ordered) = struct
     List.iter (fun (var, rhs_raw) -> solve_gfp var rhs_raw) pending
 
   let solve_pending () : unit = solve_pending_gfps ()
+
+  let imply (a : node) (b : node) : node =
+    solve_pending ();
+    imply_rec (inline_solved_vars a) (inline_solved_vars b)
 
   (** Decompose into linear terms over [universe]. *)
   let decompose_into_linear_terms ~(universe : var list) (n : node) =

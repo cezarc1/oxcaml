@@ -15,7 +15,7 @@ Line 5, characters 0-60:
 5 | type t : value mod contended = { mutable contents : string }
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod contended,
-       because mutable field contents : string does not cross contention.
+       because mutable field contents : string is not mod contended.
 |}]
 
 (* On the other hand, if we set the attribute, we shouldn't get an error. *)

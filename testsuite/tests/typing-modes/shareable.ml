@@ -130,5 +130,5 @@ Line 4, characters 0-65:
 4 | type s : value mod shareable = { v : t @@ shareable } [@@unboxed]
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation value mod shareable,
-       because t does not cross portability.
+       because t is not mod shareable.
 |}]

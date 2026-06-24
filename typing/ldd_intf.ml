@@ -41,11 +41,12 @@ module type S = sig
 
   val node_of_var : var -> node
 
-  (** Boolean algebra over nodes. *)
+  (** Lattice operations over nodes. *)
   val join : node -> node -> node
 
   val meet : node -> node -> node
 
+  (** [imply a b] is the greatest [h] such that [meet a h <= b]. *)
   val imply : node -> node -> node
 
   val sum : 'a list -> base:node -> f:('a -> node) -> node

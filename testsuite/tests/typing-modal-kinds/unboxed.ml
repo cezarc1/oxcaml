@@ -239,7 +239,7 @@ Lines 1-2, characters 0-43:
 2 |   #{ x : 'a contended; y : 'a @@ portable }
 Error: This type definition does not satisfy its kind annotation
          value mod portable & value mod portable,
-       because 'a does not cross portability.
+       because 'a is not mod portable.
 |}]
 
 type 'a t : value & value mod portable =
@@ -251,5 +251,5 @@ Lines 1-2, characters 0-40:
 2 |   #{ x : 'a contended; y : 'a portable }
 Error: This type definition does not satisfy its kind annotation
          value mod portable & value mod portable,
-       because 'a does not cross portability.
+       because 'a is not mod portable.
 |}]

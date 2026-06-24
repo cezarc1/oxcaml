@@ -65,9 +65,8 @@ Line 1, characters 0-31:
 1 | type bad : immediate = A of key
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immediate,
-       because key does not cross locality, uniqueness, linearity,
-                 contention, portability, forkable, yielding, statefulness,
-                 and visibility.
+       because key is not mod global aliased many contended portable forkable
+                 unyielding stateless immutable.
 |}]
 type bad : immediate = A of #(unit_u * key r)
 [%%expect{|
@@ -75,9 +74,8 @@ Line 1, characters 0-45:
 1 | type bad : immediate = A of #(unit_u * key r)
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Error: This type definition does not satisfy its kind annotation immediate,
-       because key does not cross locality, uniqueness, linearity,
-                 contention, portability, forkable, yielding, statefulness,
-                 and visibility.
+       because key is not mod global aliased many contended portable forkable
+                 unyielding stateless immutable.
 |}]
 
 
@@ -107,9 +105,8 @@ Lines 1-2, characters 0-33:
 1 | type bad : immediate with v1 =
 2 |   A of v1 | B of #(unit_u * v2 r)
 Error: This type definition does not satisfy its kind annotation immediate with v1,
-       because v2 does not cross locality, uniqueness, linearity, contention,
-                 portability, forkable, yielding, statefulness,
-                 and visibility.
+       because v2 is not mod global aliased many contended portable forkable
+                 unyielding stateless immutable.
 |}]
 
 type vme : void

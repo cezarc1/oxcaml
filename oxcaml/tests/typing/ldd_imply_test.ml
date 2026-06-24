@@ -42,6 +42,12 @@ let () =
   assert_equiv "(x meet y) => x" (L.imply (L.meet x y) x) top;
   assert_equiv "x => (x meet y)" (L.imply x (L.meet x y)) y;
   assert_equiv "(x join y) => x" (L.imply (L.join x y) x) x;
+  let pending_gfp = L.new_var () in
+  let pending_gfp_node = L.node_of_var pending_gfp in
+  L.enqueue_gfp pending_gfp L.bot;
+  assert_equiv "pending gfp is solved before implication"
+    (L.imply pending_gfp_node L.bot)
+    top;
   let immutable_data = Axis_lattice.immutable_data in
   let c = L.const immutable_data in
   let d = L.const Axis_lattice.value in
