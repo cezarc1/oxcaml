@@ -42,6 +42,14 @@ external int64x8_w6 : int64x8 -> int64 = "" "vec512_w6" [@@noalloc] [@@unboxed]
 
 external int64x8_w7 : int64x8 -> int64 = "" "vec512_w7" [@@noalloc] [@@unboxed]
 
+external mask_of_int64 : int64 -> mask
+  = "caml_vec512_unreachable" "caml_mask_of_int64"
+[@@noalloc] [@@unboxed] [@@builtin]
+
+external int64_of_mask : mask -> int64
+  = "caml_vec512_unreachable" "caml_int64_of_mask"
+[@@noalloc] [@@unboxed] [@@builtin]
+
 external lots_of_vectors :
   int64x8 ->
   int64x8 ->
@@ -74,6 +82,11 @@ let[@inline never] check v a b c d e f g h =
   eq (int64x8_w6 v) g;
   eq (int64x8_w7 v) h
 
+let[@inline never] check_mask name m expected =
+  let v = int64_of_mask m in
+  if v <> expected
+  then Printf.printf "%s: got %#Lx, expected %#Lx\n" name v expected
+
 let mk n =
   int64x8_of_int64s n (Int64.add n 1L) (Int64.add n 2L) (Int64.add n 3L)
     (Int64.add n 4L) (Int64.add n 5L) (Int64.add n 6L) (Int64.add n 7L)
@@ -95,10 +108,24 @@ let callback () =
   let v13 = mk 105L in
   let v14 = mk 113L in
   let v15 = mk 121L in
+  let m0 = mask_of_int64 0x0123456789abcdefL in
+  let m1 = mask_of_int64 0x1122334455667788L in
+  let m2 = mask_of_int64 0x99aabbccddeeff00L in
+  let m3 = mask_of_int64 0xfeedfacecafebeefL in
+  let m4 = mask_of_int64 0x0f1e2d3c4b5a6978L in
+  let m5 = mask_of_int64 0xa5a5a5a5a5a5a5a5L in
+  let m6 = mask_of_int64 0x5a5a5a5a5a5a5a5aL in
   let sum =
     lots_of_vectors v0 v1 v2 v3 v4 v5 v6 v7 v8 v9 v10 v11 v12 v13 v14 v15
   in
-  check sum 976L 992L 1008L 1024L 1040L 1056L 1072L 1088L
+  check sum 976L 992L 1008L 1024L 1040L 1056L 1072L 1088L;
+  check_mask "k1" m0 0x0123456789abcdefL;
+  check_mask "k2" m1 0x1122334455667788L;
+  check_mask "k3" m2 0x99aabbccddeeff00L;
+  check_mask "k4" m3 0xfeedfacecafebeefL;
+  check_mask "k5" m4 0x0f1e2d3c4b5a6978L;
+  check_mask "k6" m5 0xa5a5a5a5a5a5a5a5L;
+  check_mask "k7" m6 0x5a5a5a5a5a5a5a5aL
 
 let callback_n i0 i1 i2 i3 i4 i5 i6 i7 =
   assert (
@@ -268,3 +295,26 @@ let () =
   run_callback eff4;
   run_callback eff5;
   run_callback eff6
+
+let[@inline never] perform_then_check m0 m1 =
+  Effect.perform E;
+  check_mask "eff-k1" m0 0x0123456789abcdefL;
+  check_mask "eff-k2" m1 0xfedcba9876543210L
+
+let () =
+  Effect.Deep.try_with
+    (fun () ->
+      perform_then_check
+        (mask_of_int64 0x0123456789abcdefL)
+        (mask_of_int64 0xfedcba9876543210L))
+    ()
+    { effc =
+        (fun (type a) (e : a Effect.t) ->
+          match e with
+          | E ->
+            Some
+              (fun (k : (a, unit) Effect.Deep.continuation) ->
+                callback ();
+                Effect.Deep.continue k ())
+          | _ -> None)
+    }
