@@ -150,6 +150,7 @@ and type_desc =
   | Ttuple of (string option * type_expr) list
   | Tunboxed_tuple of (string option * type_expr) list
   | Tconstr of Path.t * type_expr list * abbrev_memo ref
+  | Tmod of type_expr * mod_bounds
   | Tobject of type_expr * (Path.t * type_expr list) option ref
   | Tfield of string * field_kind * type_expr * type_expr
   | Tquote of type_expr
@@ -1364,6 +1365,7 @@ let best_effort_compare_type_expr te1 te2 =
         | Ttuple _ -> 2
         | Tunboxed_tuple _ -> 3
         | Tconstr (_, _, _) -> 5
+        | Tmod _ -> 5
         | Tpoly (_, _) -> 6
         | Tof_kind _ -> 7
         | Trepr (_, _) -> 8
