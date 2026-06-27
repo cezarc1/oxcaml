@@ -784,7 +784,9 @@ let emit_jump_table t =
   done
 
 let emit_jump_tables () =
-  D.align ~fill:Zero ~bytes:4;
+  I.ud2 ();
+  (* data in text below *)
+  D.align ~fill:Nop ~bytes:4;
   List.iter emit_jump_table !jump_tables;
   jump_tables := []
 
@@ -2074,9 +2076,7 @@ let emit_instr ~first ~last ~fallthrough i =
       emit_jump func)
   | Lcall_op (Lextcall { func; alloc; stack_ofs; stack_align; _ }) ->
     add_used_symbol func;
-    if
-      stack_ofs > 0
-      && (Config.runtime5 || not (Cmm.equal_stack_align stack_align Align_16))
+    if stack_ofs > 0
     then (
       I.mov rsp r13;
       I.lea (mem64 QWORD stack_ofs (Scalar RSP)) r12;
@@ -2091,19 +2091,9 @@ let emit_instr ~first ~last ~fallthrough i =
     then (
       load_symbol_addr (Cmm.global_symbol func) rax;
       emit_call (Cmm.global_symbol "caml_c_call");
-      record_frame i.live (Dbg_other i.dbg);
-      if (not Config.runtime5) && not (is_win64 system)
-      then
-        (* In amd64.S, "caml_c_call" tail-calls the C function (in order to
-           produce nicer backtraces), so we need to restore r15 manually after
-           it returns (note that this increases code size).
-
-           In amd64nt.asm (used for Win64), "caml_c_call" invokes the C function
-           via a regular call, and restores r15 itself, thus avoiding the code
-           size increase. *)
-        I.mov (domain_field Domainstate.Domain_young_ptr) r15)
+      record_frame i.live (Dbg_other i.dbg))
     else
-      let switch_stacks = Config.runtime5 && not Config.no_stack_checks in
+      let switch_stacks = not Config.no_stack_checks in
       if switch_stacks
       then (
         I.mov rsp r13;
@@ -2111,7 +2101,7 @@ let emit_instr ~first ~last ~fallthrough i =
         D.cfi_def_cfa_register ~reg:"r13";
         (* NB: gdb has asserts on contiguous stacks that mean it will not unwind
            through this unless we were to tag this calling frame with
-           cfi_signal_frame in it's definition. *)
+           cfi_signal_frame in its definition. *)
         I.mov (domain_field Domainstate.Domain_c_stack) rsp);
       emit_call (Cmm.global_symbol func);
       if switch_stacks
@@ -2538,15 +2528,9 @@ let emit_instr ~first ~last ~fallthrough i =
     I.cmp (int 0) (res16 i 0);
     I.set (cond Cne) (res8 i 0);
     I.movzx (res8 i 0) (res i 0)
-  | Lop Dls_get ->
-    if Config.runtime5
-    then I.mov (domain_field Domainstate.Domain_dls_state) (res i 0)
-    else Misc.fatal_error "Dls is not supported in runtime4."
+  | Lop Dls_get -> I.mov (domain_field Domainstate.Domain_dls_state) (res i 0)
   | Lop Tls_get -> I.mov (domain_field Domainstate.Domain_tls_state) (res i 0)
-  | Lop Domain_index ->
-    if Config.runtime5
-    then I.mov (domain_field Domainstate.Domain_id) (res i 0)
-    else I.xor (res32 i 0) (res32 i 0)
+  | Lop Domain_index -> I.mov (domain_field Domainstate.Domain_id) (res i 0)
   | Lreloadretaddr -> ()
   | Lreturn -> I.ret ()
   | Llabel { label = lbl; section_name } ->
@@ -2630,9 +2614,7 @@ let emit_instr ~first ~last ~fallthrough i =
     | Lambda.Raise_regular ->
       I.mov (int 0) (domain_field Domainstate.Domain_backtrace_pos);
       call_raise "caml_raise_exn"
-    | Lambda.Raise_reraise ->
-      call_raise
-        (if Config.runtime5 then "caml_reraise_exn" else "caml_raise_exn")
+    | Lambda.Raise_reraise -> call_raise "caml_reraise_exn"
     | Lambda.Raise_notrace ->
       I.mov (domain_field Domainstate.Domain_exn_handler) rsp;
       I.pop (domain_field Domainstate.Domain_exn_handler);
@@ -2724,10 +2706,7 @@ let fundecl fundecl =
   emit_debug_info fundecl.fun_dbg;
   D.cfi_startproc ();
   D.comment ("LLVM-MCA-BEGIN " ^ !function_name);
-  if
-    Config.runtime5
-    && (not Config.no_stack_checks)
-    && String.equal !Clflags.runtime_variant "d"
+  if (not Config.no_stack_checks) && String.equal !Clflags.runtime_variant "d"
   then emit_call (Cmm.global_symbol "caml_assert_stack_invariants");
   let fun_body_start = current_output_pos () in
   emit_all ~first:true ~fallthrough:true fundecl.fun_body;
@@ -2999,10 +2978,7 @@ let emit_probe_handler_wrapper (p : Probe_emission.probe) =
   let padding = if wrapper_frame_size k mod 16 = 0 then 0 else 8 in
   let n = k + padding in
   (* Allocate stack space *)
-  if
-    Config.runtime5
-    && (not Config.no_stack_checks)
-    && n >= Stack_check.stack_threshold_size
+  if (not Config.no_stack_checks) && n >= Stack_check.stack_threshold_size
   then
     emit_stack_check ~size_in_bytes:n ~save_registers:true
       ~save_simd:(must_save_simd_regs p.probe_insn.live);
@@ -3128,18 +3104,16 @@ let end_assembly () =
   (* PR#6329 *)
   emit_global_label ~section:Data "data_end";
   D.int64 0L;
-  D.text ();
-  (* We align to 8 bytes before the frame table. Perhaps somewhat
-     counterintuitively, we use [~fill:Zero] even though we are now in the text
-     section. The reason is that the additional padding will never be executed,
-     so there is no need to pad it with nops in the X86 binary emitter. *)
-  (* CR sspies: We should just determine the filling based on the current
-     section for the binary emitter and then remove the argument [fill]. This is
-     the only place, where it does not seem to match the current section, and it
-     seems it does not matter whether we pad with zeros or nops here. *)
-  D.align ~fill:Zero ~bytes:8;
+  let frametable_section : Asm_targets.Asm_section.t =
+    if !Oxcaml_flags.frametables_in_rodata then Read_only_data else Text
+  in
+  D.switch_to_section frametable_section;
+  I.ud2 ();
+  D.align
+    ~fill:(if !Oxcaml_flags.frametables_in_rodata then Zero else Nop)
+    ~bytes:8;
   (* PR#7591 *)
-  emit_global_label ~section:Text "frametable";
+  emit_global_label ~section:frametable_section "frametable";
   (* CR sspies: Share the [emit_frames] code with the Arm backend. *)
   emit_frames
     { efa_code_label =
@@ -3157,16 +3131,16 @@ let end_assembly () =
       efa_u16 = (fun n -> D.uint16 n);
       efa_u32 = (fun n -> D.uint32 n);
       efa_word = (fun n -> D.targetint (Targetint.of_int_exn n));
-      efa_align = (fun n -> D.align ~fill:Zero ~bytes:n);
+      efa_align = (fun n -> D.align ~fill:Nop ~bytes:n);
       efa_label_rel =
         (fun lbl ofs ->
-          let lbl = label_to_asm_label ~section:Text lbl in
+          let lbl = label_to_asm_label ~section:frametable_section lbl in
           let ofs = Targetint.of_int32 ofs in
           D.between_this_and_label_offset_32bit_expr ~upper:lbl
             ~offset_upper:ofs);
       efa_def_label =
         (fun l ->
-          let lbl = label_to_asm_label ~section:Text l in
+          let lbl = label_to_asm_label ~section:frametable_section l in
           D.define_label lbl);
       efa_string = (fun s -> D.string (s ^ "\000"))
     };

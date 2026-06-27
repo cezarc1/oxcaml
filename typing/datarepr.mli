@@ -17,9 +17,10 @@
    determining their representation. *)
 
 open Types
+open Data_types
 
 val extension_descr:
-  current_unit:Unit_info.t option -> Path.t -> extension_constructor ->
+  current_unit:(Unit_info.t option) -> Path.t -> extension_constructor ->
   constructor_description
 
 val labels_of_type:
@@ -29,7 +30,7 @@ val unboxed_labels_of_type:
   Path.t -> type_declaration ->
   (Ident.t * unboxed_label_description) list
 val constructors_of_type:
-  current_unit:Unit_info.t option -> Path.t -> type_declaration ->
+  current_unit:(Unit_info.t option) -> Path.t -> type_declaration ->
   (Ident.t * constructor_description) list
 
 
@@ -45,15 +46,12 @@ val find_variant_with_null_payload :
   constructor_declaration list -> variant_with_null_payload option
 
 val constant_constructor_runtime_tags_for_boxed_variant :
-  constructor_declaration list ->
-  (constructor_representation * Jkind_types.Sort.Const.t array) array ->
+  constructor_declaration list -> cstr_layout array ->
   int option array
 
 val first_immediate_constructor_tag_mismatch_for_boxed_variants :
-  constructor_declaration list ->
-  (constructor_representation * Jkind_types.Sort.Const.t array) array ->
-  constructor_declaration list ->
-  (constructor_representation * Jkind_types.Sort.Const.t array) array ->
+  constructor_declaration list -> cstr_layout array ->
+  constructor_declaration list -> cstr_layout array ->
   (string * int * int) option
 
 val first_immediate_constructor_tag_changing_default :

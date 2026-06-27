@@ -19,8 +19,8 @@ type changed =
 Line 2, characters 7-21:
 2 |   | C0 [@immediate 1]
            ^^^^^^^^^^^^^^
-Warning 187 [incompatible-with-upstream]: This [@immediate] constructor tag changes runtime representation
-and is not upstream compatible.
+Warning 187 [incompatible-with-upstream]: This "[@immediate]" constructor tag changes runtime representation
+  and is not upstream compatible.
 
 type changed = C0 [@immediate 1] | C1
 |}]
