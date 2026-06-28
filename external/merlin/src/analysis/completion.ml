@@ -79,8 +79,7 @@ let rec methods_of_type env ?(acc = []) type_expr =
   | Tlink type_expr
   | Tobject (type_expr, _)
   | Tpoly (type_expr, _)
-  | Tmod (type_expr, _) ->
-    methods_of_type env ~acc type_expr
+  | Tmod (type_expr, _) -> methods_of_type env ~acc type_expr
   | Tfield (name, _, ty, rest) ->
     methods_of_type env ~acc:((name, ty) :: acc) rest
   | Tconstr (path, _, _) ->
