@@ -206,6 +206,9 @@ and ident_lexing_position = ident_create "lexing_position"
    keep `expr` for now instead of `code` *)
 and ident_code = ident_create "expr"
 and ident_eval = ident_create "eval"
+(* Keep Merlin's predefined identifier stamps aligned with the compiler used to
+   build stdlib cmi files, even though Merlin does not yet use [box]. *)
+and ident_box = ident_create "box" [@@warning "-32"]
 
 and ident_or_null = ident_create "or_null"
 and ident_idx_imm = ident_create "idx_imm"
