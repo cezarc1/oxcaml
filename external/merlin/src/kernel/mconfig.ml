@@ -788,6 +788,7 @@ let ocaml_ignored_parametrized_flags =
     "-intf-suffix";
     "-keywords";
     "-o";
+    "-open-cmi";
     "-rounds";
     "-runtime-variant";
     "-ocamlrunparam";
