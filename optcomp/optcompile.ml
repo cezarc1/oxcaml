@@ -50,6 +50,8 @@ module type S = sig
 
   val instantiate : src:string -> args:string list -> string -> unit
 
+  val functorize : Compilation_unit.Name.Set.t -> string -> unit
+
   val package_files :
     ppf_dump:Format.formatter -> Env.t -> string list -> string -> unit
 end
@@ -250,6 +252,35 @@ module Make (Backend : Optcomp_intf.Backend) : S = struct
     Instantiator.instantiate ~src ~args targetcmx
       ~expected_extension:ext_flambda_obj ~read_unit_info
       ~compile:(instance ~keep_symbol_tables:false)
+
+  let compile_program info program =
+    if !Oxcaml_flags.internal_assembler
+    then Emitaux.binary_backend_available := true;
+    Compilenv.reset info.Compile_common.target;
+    if not (Config.flambda || Config.flambda2) then Clflags.set_oclassic ();
+    compile_from_tlambda info program ~as_arg_for:None ~keep_symbol_tables:false
+
+  let functorize input_module_names targetcmx =
+    if Filename.check_suffix targetcmx ".cmi"
+    then Functorizer.interface input_module_names targetcmx
+    else
+      let output_prefix = Filename.remove_extension targetcmx in
+      let unit_info =
+        unit_info_from_cu_or_output_prefix ~source_file:targetcmx Unit_info.Impl
+          ~output_prefix ~compilation_unit:Inferred_from_output_prefix
+      in
+      with_info ~dump_ext:Backend.ext_flambda_obj unit_info @@ fun info ->
+      Misc.try_finally
+        (fun () ->
+          Functorizer.implementation input_module_names ~ext:ext_flambda_obj
+            ~read_format:(fun filename ->
+              let unit_info, _crc = Compilenv.read_unit_info filename in
+              unit_info.ui_format, unit_info.ui_arg_descr)
+            ~compile_program info)
+        ~exceptionally:(fun () ->
+          Misc.remove_file targetcmx;
+          Misc.remove_file
+            (Unit_info.Artifact.filename (Unit_info.cmi info.target)))
 end
 
 let native unix
