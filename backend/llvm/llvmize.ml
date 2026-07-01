@@ -1268,6 +1268,11 @@ let basic_op t (i : Cfg.basic Cfg.instruction) (op : Operation.t) =
       store_into_reg t i.res.(0) converted
     in
     match cast_op with
+    | Int_of_int { src; dst; signedness } ->
+      ignore src;
+      ignore dst;
+      ignore signedness;
+      assert false
     | Float_of_int width ->
       do_conv Sitofp ~from:T.i64 ~to_:(T.of_float_width width)
     | Int_of_float width ->

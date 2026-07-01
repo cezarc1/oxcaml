@@ -1684,6 +1684,11 @@ let emit_static_cast (cast : Cmm.static_cast) i =
   let open Simd_instrs in
   let distinct = not (Reg.same_loc i.arg.(0) i.res.(0)) in
   match cast with
+  | Int_of_int { src; dst; signedness } ->
+    ignore src;
+    ignore dst;
+    ignore signedness;
+    assert false
   | Float_of_int Float64 ->
     sse_or_avx_dst cvtsi2sd_X_r64m64 vcvtsi2sd_X_X_r64m64 (arg i 0) (res i 0)
   | Int_of_float Float64 ->

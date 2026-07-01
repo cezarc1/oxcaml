@@ -745,7 +745,7 @@ let operation_supported = function
                        Float32_of_float | Float_of_float32 |
                        Float32_of_int32 | Int32_of_float32 |
                        V128_of_vec Vec128)
-  | Cstatic_cast (Float_of_float32 | Float32_of_float |
+  | Cstatic_cast (Int_of_int _ | Float_of_float32 | Float32_of_float |
                   Int_of_float Float32 | Float_of_int Float32 |
                   Float_of_int Float64 | Int_of_float Float64 |
                   V128_of_scalar _ | Scalar_of_v128 _) ->

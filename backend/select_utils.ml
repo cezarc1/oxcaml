@@ -225,6 +225,7 @@ let oper_result_type = function
   | Creinterpret_cast Int_of_value -> typ_tagged_int
   | Creinterpret_cast Int64_of_float -> typ_int64
   | Creinterpret_cast Int32_of_float32 -> typ_int32
+  | Cstatic_cast (Int_of_int { dst; _ }) -> typ_int dst
   | Cstatic_cast (Float_of_float32 | Float_of_int Float64) -> typ_float
   | Cstatic_cast (Float32_of_float | Float_of_int Float32) -> typ_float32
   | Cstatic_cast (Int_of_float (Float64 | Float32)) -> typ_tagged_int
