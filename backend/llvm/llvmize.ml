@@ -1268,11 +1268,15 @@ let basic_op t (i : Cfg.basic Cfg.instruction) (op : Operation.t) =
       store_into_reg t i.res.(0) converted
     in
     match cast_op with
-    | Int_of_int { src; dst; signedness } ->
-      ignore src;
-      ignore dst;
-      ignore signedness;
-      assert false
+    | Int_of_int ({ src; dst; signedness = _ } as cast) -> (
+      let from = T.Int { width_in_bits = Cmm.bits_of_int_width src } in
+      let to_ = T.Int { width_in_bits = Cmm.bits_of_int_width dst } in
+      match Cmm.class_of_int_cast cast with
+      | Identity ->
+        load_reg_to_temp ~typ:from t i.arg.(0) |> store_into_reg t i.res.(0)
+      | Truncate -> do_conv Trunc ~from ~to_
+      | Sign_extend -> do_conv Sext ~from ~to_
+      | Zero_extend -> do_conv Zext ~from ~to_)
     | Float_of_int width ->
       do_conv Sitofp ~from:T.i64 ~to_:(T.of_float_width width)
     | Int_of_float width ->

@@ -29,6 +29,12 @@ let string_of_int_width = function
   | Int16 -> "Int16"
   | Int8 -> "Int8"
 
+let bits_of_int_width = function
+  | Int64 -> 64
+  | Int32 -> 32
+  | Int16 -> 16
+  | Int8 -> 8
+
 let equal_int_width w1 w2 =
   match w1, w2 with
   | Int64, Int64 | Int32, Int32 | Int16, Int16 | Int8, Int8 -> true
@@ -451,11 +457,7 @@ type reinterpret_cast =
   | V512_of_vec of vector_width
 
 type static_cast =
-  | Int_of_int of
-      { src : int_width;
-        dst : int_width;
-        signedness : Scalar.Signedness.t
-      }
+  | Int_of_int of int_cast
   | Float_of_int of float_width
   | Int_of_float of float_width
   | Float_of_float32
@@ -466,6 +468,26 @@ type static_cast =
   | Scalar_of_v256 of vec256_type
   | V512_of_scalar of vec512_type
   | Scalar_of_v512 of vec512_type
+
+and int_cast =
+  { src : int_width;
+    dst : int_width;
+    signedness : Scalar.Signedness.t
+  }
+
+type int_cast_class =
+  | Sign_extend
+  | Zero_extend
+  | Truncate
+  | Identity
+
+let class_of_int_cast { src; dst; signedness } =
+  let src = bits_of_int_width src and dst = bits_of_int_width dst in
+  if src > dst
+  then Truncate
+  else if src < dst
+  then match signedness with Signed -> Sign_extend | Unsigned -> Zero_extend
+  else Identity
 
 module Alloc_mode = struct
   type t =

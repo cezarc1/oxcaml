@@ -1684,11 +1684,21 @@ let emit_static_cast (cast : Cmm.static_cast) i =
   let open Simd_instrs in
   let distinct = not (Reg.same_loc i.arg.(0) i.res.(0)) in
   match cast with
-  | Int_of_int { src; dst; signedness } ->
-    ignore src;
-    ignore dst;
-    ignore signedness;
-    assert false
+  | Int_of_int ({ src; _ } as cast) -> (
+    match Cmm.class_of_int_cast cast with
+    | Identity | Truncate -> if distinct then I.mov (arg i 0) (res i 0)
+    | Sign_extend -> (
+      match src with
+      | Int8 -> I.movsx (arg8 i 0) (res i 0)
+      | Int16 -> I.movsx (arg16 i 0) (res i 0)
+      | Int32 -> I.movsxd (arg32 i 0) (res i 0)
+      | Int64 -> Misc.fatal_error "Cannot sign-extend from Int64")
+    | Zero_extend -> (
+      match src with
+      | Int8 -> I.movzx (arg8 i 0) (res i 0)
+      | Int16 -> I.movzx (arg16 i 0) (res i 0)
+      | Int32 -> I.mov (arg32 i 0) (res32 i 0)
+      | Int64 -> Misc.fatal_error "Cannot zero-extend from Int64"))
   | Float_of_int Float64 ->
     sse_or_avx_dst cvtsi2sd_X_r64m64 vcvtsi2sd_X_X_r64m64 (arg i 0) (res i 0)
   | Int_of_float Float64 ->

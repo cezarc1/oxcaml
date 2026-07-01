@@ -25,6 +25,8 @@ type int_width = Cmx_format.int_width =
 
 val string_of_int_width : int_width -> string
 
+val bits_of_int_width : int_width -> int
+
 type machtype_component = Cmx_format.machtype_component =
   | Val
   | Addr
@@ -348,11 +350,7 @@ type reinterpret_cast =
 (* These casts may require a particular value-preserving operation, e.g.
    truncating a float to an int. *)
 type static_cast =
-  | Int_of_int of
-      { src : int_width;
-        dst : int_width;
-        signedness : Scalar.Signedness.t
-      }
+  | Int_of_int of int_cast
   | Float_of_int of float_width
   | Int_of_float of float_width
   | Float_of_float32
@@ -363,6 +361,20 @@ type static_cast =
   | Scalar_of_v256 of vec256_type
   | V512_of_scalar of vec512_type
   | Scalar_of_v512 of vec512_type
+
+and int_cast =
+  { src : int_width;
+    dst : int_width;
+    signedness : Scalar.Signedness.t
+  }
+
+type int_cast_class =
+  | Sign_extend
+  | Zero_extend
+  | Truncate
+  | Identity
+
+val class_of_int_cast : int_cast -> int_cast_class
 
 module Alloc_mode : sig
   type t =
