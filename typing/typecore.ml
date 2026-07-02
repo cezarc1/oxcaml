@@ -536,6 +536,17 @@ let check_tail_call_local_returning loc env ap_mode {region_mode; _} =
     end
   | None -> ()
 
+let cross_left_except_areality_if ~should_skip env ty mode =
+  let crossing = crossing_of_ty env ty in
+  let crossing =
+    if should_skip then
+      Crossing.set (Comonadic Areality)
+        (Crossing.Per_axis.max (Comonadic Areality))
+      crossing
+    else crossing
+  in
+  mode |> Value.disallow_right |> Crossing.apply_left crossing
+
 let meet_regional ?hint:h mode =
   let mode = Value.disallow_left mode in
   Value.meet [Value.(of_const ?hint_comonadic:h {
@@ -7397,7 +7408,12 @@ and type_expect_
       in
       let mode_ret = Alloc.disallow_right mode_ret in
       let ap_mode = create_allocation_mode_l mode_ret in
-      let mode_ret = cross_left env ty_ret (alloc_as_value mode_ret) in
+      let mode_ret = alloc_as_value mode_ret in
+      (* if the call is in tail position, we do not want to cross areality *)
+      let should_skip = Option.is_some pm.region_mode in
+      let mode_ret =
+        cross_left_except_areality_if ~should_skip env ty_ret mode_ret
+      in
       let zero_alloc =
         Builtin_attributes.get_zero_alloc_attribute ~in_signature:false
           ~on_application:true

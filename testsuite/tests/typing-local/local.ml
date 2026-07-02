@@ -1165,9 +1165,9 @@ val foo : unit -> int = <fun>
 |}]
 
 (* tail-calling local-returning functions make the current function
-   local-returning as well; mode-crossing is irrelavent here. Whether or not the
-   function actually allocates in parent-region is also irrelavent here, but we
-   allocate just to demonstrate the potential leaking. *)
+   local-returning as well, and must therefore use [exclave_] even if
+   the callee does not return an allocation. We allocate to demonstrate
+   the potential leaking.  *)
 let foo () = exclave_
   let _ = local_ (52, 24) in
   42
@@ -1176,6 +1176,19 @@ val foo : unit -> int @ local = <fun>
 |}]
 
 let bar () =
+  let _x = 52 in
+  foo ()
+[%%expect{|
+Line 3, characters 2-8:
+3 |   foo ()
+      ^^^^^^
+Error: This value is "local"
+       but is expected to be "local" to the parent region or "global"
+         because it is a function return value.
+         Hint: Use exclave_ to return a local value.
+|}]
+
+let bar () = exclave_
   let _x = 52 in
   foo ()
 [%%expect{|
