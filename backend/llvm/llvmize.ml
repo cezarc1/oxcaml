@@ -1277,6 +1277,18 @@ let basic_op t (i : Cfg.basic Cfg.instruction) (op : Operation.t) =
       | Truncate -> do_conv Trunc ~from ~to_
       | Sign_extend -> do_conv Sext ~from ~to_
       | Zero_extend -> do_conv Zext ~from ~to_)
+    | Tagged_int_of_int64 ->
+      let arg = load_reg_to_temp ~typ:T.i64 t i.arg.(0) in
+      let shifted = emit_ins t (I.binary Shl ~arg1:arg ~arg2:(V.of_int 1)) in
+      let tagged = emit_ins t (I.binary Or ~arg1:shifted ~arg2:(V.of_int 1)) in
+      store_into_reg t i.res.(0) tagged
+    | Int64_of_tagged_int { signedness } ->
+      let arg = load_reg_to_temp ~typ:T.i64 t i.arg.(0) in
+      let op : LL.Instruction.binary_op =
+        match signedness with Signed -> Ashr | Unsigned -> Lshr
+      in
+      let untagged = emit_ins t (I.binary op ~arg1:arg ~arg2:(V.of_int 1)) in
+      store_into_reg t i.res.(0) untagged
     | Float_of_int width ->
       do_conv Sitofp ~from:T.i64 ~to_:(T.of_float_width width)
     | Int_of_float width ->

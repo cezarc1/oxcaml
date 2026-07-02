@@ -351,6 +351,8 @@ type reinterpret_cast =
    truncating a float to an int. *)
 type static_cast =
   | Int_of_int of int_cast
+  | Tagged_int_of_int64
+  | Int64_of_tagged_int of { signedness : Scalar.Signedness.t }
   | Float_of_int of float_width
   | Int_of_float of float_width
   | Float_of_float32

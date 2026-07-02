@@ -458,6 +458,8 @@ type reinterpret_cast =
 
 type static_cast =
   | Int_of_int of int_cast
+  | Tagged_int_of_int64
+  | Int64_of_tagged_int of { signedness : Scalar.Signedness.t }
   | Float_of_int of float_width
   | Int_of_float of float_width
   | Float_of_float32
@@ -1082,6 +1084,10 @@ let equal_static_cast (left : static_cast) (right : static_cast) =
       Int_of_int { src = src2; dst = dst2; signedness = s2 } ) ->
     equal_int_width src1 src2 && equal_int_width dst1 dst2
     && Scalar.Signedness.equal s1 s2
+  | Tagged_int_of_int64, Tagged_int_of_int64 -> true
+  | ( Int64_of_tagged_int { signedness = s1 },
+      Int64_of_tagged_int { signedness = s2 } ) ->
+    Scalar.Signedness.equal s1 s2
   | Float32_of_float, Float32_of_float -> true
   | Float_of_float32, Float_of_float32 -> true
   | Float_of_int f1, Float_of_int f2 -> equal_float_width f1 f2
@@ -1092,8 +1098,9 @@ let equal_static_cast (left : static_cast) (right : static_cast) =
   | V256_of_scalar v1, V256_of_scalar v2 -> equal_vec256_type v1 v2
   | Scalar_of_v512 v1, Scalar_of_v512 v2 -> equal_vec512_type v1 v2
   | V512_of_scalar v1, V512_of_scalar v2 -> equal_vec512_type v1 v2
-  | ( ( Int_of_int _ | Float32_of_float | Float_of_float32 | Float_of_int _
-      | Int_of_float _ | Scalar_of_v128 _ | V128_of_scalar _ | Scalar_of_v256 _
+  | ( ( Int_of_int _ | Tagged_int_of_int64 | Int64_of_tagged_int _
+      | Float32_of_float | Float_of_float32 | Float_of_int _ | Int_of_float _
+      | Scalar_of_v128 _ | V128_of_scalar _ | Scalar_of_v256 _
       | V256_of_scalar _ | Scalar_of_v512 _ | V512_of_scalar _ ),
       _ ) ->
     false

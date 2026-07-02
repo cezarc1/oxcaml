@@ -230,7 +230,7 @@ let basic (map : spilled_map) (instr : Cfg.basic Cfg.instruction) =
     may_use_stack_operand_for_result map instr ~num_args:1
   | Op
       (Static_cast
-         ( Int_of_int _
+         ( Int_of_int _ | Tagged_int_of_int64 | Int64_of_tagged_int _
          | Float_of_int (Float32 | Float64)
          | Int_of_float (Float32 | Float64)
          | Float_of_float32 | Float32_of_float )) ->

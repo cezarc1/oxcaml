@@ -252,6 +252,12 @@ let static_cast : Cmm.static_cast -> string = function
       (Cmm.string_of_int_width src)
       unsigned_sigil
       (Cmm.string_of_int_width dst)
+  | Tagged_int_of_int64 -> "Int64->Tagged_int"
+  | Int64_of_tagged_int { signedness } ->
+    let unsigned_sigil =
+      match signedness with Signed -> "" | Unsigned -> "U"
+    in
+    Printf.sprintf "%sTagged_int->%sInt64" unsigned_sigil unsigned_sigil
   | Int_of_float Float64 -> "float->int"
   | Float_of_int Float64 -> "int->float"
   | Int_of_float Float32 -> "float32->int"

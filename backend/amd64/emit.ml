@@ -1699,6 +1699,23 @@ let emit_static_cast (cast : Cmm.static_cast) i =
       | Int16 -> I.movzx (arg16 i 0) (res i 0)
       | Int32 -> I.mov (arg32 i 0) (res32 i 0)
       | Int64 -> Misc.fatal_error "Cannot zero-extend from Int64"))
+  | Tagged_int_of_int64 ->
+    let r =
+      (* CR jrayman: Should we have this check or change
+         [regalloc_stack_operands.ml]? *)
+      if Reg.is_stack i.arg.(0)
+      then (
+        I.mov (arg i 0) (res i 0);
+        reg64 i.res.(0))
+      else arg64 i 0
+    in
+    I.lea (mem64 NONE ~base:r 1 (Scalar r)) (res i 0)
+  | Int64_of_tagged_int { signedness } ->
+    if distinct then I.mov (arg i 0) (res i 0);
+    begin match signedness with
+    | Signed -> I.sar (int 1) (res i 0)
+    | Unsigned -> I.shr (int 1) (res i 0)
+    end
   | Float_of_int Float64 ->
     sse_or_avx_dst cvtsi2sd_X_r64m64 vcvtsi2sd_X_X_r64m64 (arg i 0) (res i 0)
   | Int_of_float Float64 ->
