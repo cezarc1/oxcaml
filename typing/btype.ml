@@ -2456,11 +2456,7 @@ module Jkind0 = struct
 
   let project_variant_constructor_arg_tys
       ~decl_params ~type_apply ~get_free_vars cstr =
-    let cstr_arg_tys =
-      match cstr.cd_args with
-      | Cstr_tuple args -> List.map (fun arg -> arg.ca_type) args
-      | Cstr_record lbls -> List.map (fun lbl -> lbl.ld_type) lbls
-    in
+    let cstr_arg_tys = tys_of_constr_args cstr.cd_args in
     let extra_substs =
       variant_constructor_gadt_extra_substs
         ~projected_params:decl_params
@@ -2614,13 +2610,24 @@ module Jkind0 = struct
       in
       Builtin.value ~why
 
-    let for_variant_with_null_result path ~modality payload_ty =
+    let for_variant_with_null_result path ~cstr_res ~modality payload_ty =
       let why : Jkind_intf.History.value_or_null_creation_reason =
         Or_null_payload path
       in
-      Builtin.value_or_null ~why
-      |> add_with_bounds ~modality ~type_expr:payload_ty
-      |> mark_best
+      match cstr_res with
+      | Some _ ->
+        (* The payload type of a GADT constructor mentions
+           constructor-local variables (the constructor's own copies of
+           the type parameters, and existentials), so it cannot soundly
+           be recorded as a with-bound on the declaration's jkind. Leave
+           the conservative jkind un-best: [Ctype.unbox_once] recovers
+           precision at use sites by projecting the payload onto the
+           use-site arguments. *)
+        Builtin.value_or_null ~why
+      | None ->
+        Builtin.value_or_null ~why
+        |> add_with_bounds ~modality ~type_expr:payload_ty
+        |> mark_best
   end
 
   include Jkind

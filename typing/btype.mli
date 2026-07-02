@@ -731,17 +731,6 @@ module Jkind0 : sig
       get_free_vars:(Types.type_expr list -> TypeSet.t) ->
       (Types.type_expr * Types.type_expr) list
 
-    val project_variant_constructor_arg_tys :
-      decl_params:Types.type_expr list ->
-      type_apply:
-        (Types.type_expr list ->
-        Types.type_expr ->
-        Types.type_expr list ->
-        Types.type_expr) ->
-      get_free_vars:(Types.type_expr list -> TypeSet.t) ->
-      Types.constructor_declaration ->
-      Types.type_expr list
-
     val for_boxed_variant :
       loc:Location.t ->
       decl_params:Types.type_expr list ->
@@ -757,7 +746,11 @@ module Jkind0 : sig
     val for_or_null_argument : Ident.t -> 'd jkind
     val for_or_null_payload : Path.t -> 'd jkind
     val for_variant_with_null_result :
-      Path.t -> modality:Mode.Modality.Const.t -> type_expr -> jkind_l
+      Path.t ->
+      cstr_res:type_expr option ->
+      modality:Mode.Modality.Const.t ->
+      type_expr ->
+      jkind_l
 
     val for_effect_arg : Ident.t -> 'd jkind
 

@@ -220,9 +220,9 @@ let check_or_null_variant_shape sdecl scstrs =
   check_or_null_decl bad sdecl;
   check_or_null_constructors bad scstrs
 
-let get_or_null_payload_arg cstrs : Types.constructor_argument =
+let get_or_null_payload cstrs : Datarepr.variant_with_null_payload =
   match Datarepr.find_variant_with_null_payload cstrs with
-  | Some { payload_arg; _ } -> payload_arg
+  | Some payload -> payload
   | None -> Misc.fatal_error "Invalid constructor for Variant_with_null"
 
 let constrain_or_null_payload ~env ~path payload_ty payload_loc =
@@ -1034,14 +1034,8 @@ let transl_declaration env sdecl (id, uid) =
         Ttype_abstract, Type_abstract Definition,
         Jkind.Builtin.value ~why:Default_type_jkind
       | Ptype_variant scstrs ->
-        let has_gadt =
-          List.exists
-            (fun ({ pcd_res; _ } : Parsetree.constructor_declaration) ->
-              Option.is_some pcd_res)
-            scstrs
-        in
         if or_null then check_or_null_variant_shape sdecl scstrs;
-        if has_gadt then begin
+        if List.exists (fun cstr -> cstr.pcd_res <> None) scstrs then begin
           match cstrs with
             [] -> ()
           | (_,_,loc)::_ ->
@@ -1091,27 +1085,24 @@ let transl_declaration env sdecl (id, uid) =
             (fun () -> make_cstr scstr)
         in
         let tcstrs, cstrs = List.split (List.map make_cstr scstrs) in
-        let or_null_payload_arg =
+        let or_null_payload =
           if or_null then begin
-            let payload_arg = get_or_null_payload_arg cstrs in
-            let payload_ty = payload_arg.Types.ca_type in
-            let payload_loc = payload_arg.Types.ca_loc in
+            let payload = get_or_null_payload cstrs in
+            let payload_ty = payload.Datarepr.payload_arg.Types.ca_type in
+            let payload_loc = payload.Datarepr.payload_arg.Types.ca_loc in
             constrain_or_null_payload ~env ~path payload_ty payload_loc;
-            Some payload_arg
+            Some payload
           end else
             None
         in
         let rep, jkind =
-          match or_null_payload_arg with
-          | Some payload_arg ->
+          match or_null_payload with
+          | Some { Datarepr.payload_cstr; payload_arg } ->
             let payload_ty = payload_arg.Types.ca_type in
             let modality = payload_arg.Types.ca_modalities in
             Variant_with_null,
-            if has_gadt then
-              Jkind.Builtin.value_or_null ~why:(Primitive Predef.ident_or_null)
-            else
-              Btype.Jkind0.for_variant_with_null_result
-                path ~modality payload_ty
+            Btype.Jkind0.for_variant_with_null_result
+              path ~cstr_res:payload_cstr.Types.cd_res ~modality payload_ty
           | None ->
             if unbox then
               Variant_unboxed,
@@ -2455,21 +2446,9 @@ let rec update_decl_jkind env dpath decl =
     | _, Variant_with_null ->
       begin match Datarepr.find_variant_with_null_payload cstrs with
       | Some
-          { payload_cstr = ({ Types.cd_uid; cd_res; _ } as payload_cstr);
-            payload_arg = { ca_modalities = modality; _ } } ->
-        let projected_payload_ty =
-          match
-            Btype.Jkind0.project_variant_constructor_arg_tys
-              ~decl_params:decl.type_params
-              ~type_apply:(Ctype.apply env)
-              ~get_free_vars:(Ctype.free_variable_set_of_list env)
-              payload_cstr
-          with
-          | [payload_ty] -> payload_ty
-          | [] | _ :: _ :: _ ->
-            Misc.fatal_error "Invalid constructor for Variant_with_null"
-        in
-        let jkind = Ctype.type_jkind env projected_payload_ty in
+          { payload_cstr = { Types.cd_uid; cd_res; _ };
+            payload_arg = { ca_type = ty; ca_modalities = modality; _ } } ->
+        let jkind = Ctype.type_jkind env ty in
         let sort = Jkind.sort_of_jkind env jkind in
         let ca_sort = Jkind.Sort.default_to_scannable_and_get_some sort in
         let cstrs =
@@ -2485,13 +2464,14 @@ let rec update_decl_jkind env dpath decl =
                             ca_loc }] }
                  | Cstr_tuple [] | Cstr_tuple (_ :: _ :: _) | Cstr_record _ ->
                    Misc.fatal_error "Invalid constructor for Variant_with_null"
-              else cstr)
+               else cstr)
             cstrs
         in
         begin match cd_res with
         | Some _ ->
           cstrs, rep,
-          Jkind.Builtin.value_or_null ~why:(Primitive Predef.ident_or_null)
+          Btype.Jkind0.for_variant_with_null_result
+            dpath ~cstr_res:cd_res ~modality ty
         | None ->
           begin match
             Jkind.apply_modality_l modality jkind

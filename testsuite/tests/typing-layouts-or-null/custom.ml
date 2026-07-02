@@ -419,9 +419,6 @@ Error: The layout of type "int t" is value_or_null
          because the payload of bad_payload has layout value.
 |}]
 
-(* CR or-null: allow GADT custom [@@or_null] types.
-   Internal ticket 6854. *)
-
 type 'a gadt =
   | A : 'a gadt
   | B : 'a -> 'a gadt
@@ -468,9 +465,6 @@ Error: This type "float gadt" should be an instance of type
          because of the definition of accepts_nonfloat at line 3, characters 0-56.
 |}]
 
-(* CR or-null: allow GADT custom [@@or_null] types with concrete indices.
-   Internal ticket 6854. *)
-
 type 'a concrete_gadt =
   | Null : int concrete_gadt
   | This : string -> bool concrete_gadt
@@ -488,6 +482,36 @@ type ('a : any) widened_bad_jkind =
 [@@or_null]
 [%%expect{|
 type ('a : value_maybe_separable) widened_bad_jkind = A | B of 'a [@@or_null]
+|}]
+
+(* For GADT constructors the payload variable is constructor-local, so an
+   [('a : any)] parameter is not narrowed by the payload constraint. This
+   used to hit a fatal error in [update_decl_jkind]. *)
+type ('a : any) widened_any_gadt =
+  | Any_null : 'a widened_any_gadt
+  | Any_this : 'a -> 'a widened_any_gadt
+[@@or_null]
+
+[%%expect{|
+type ('a : any) widened_any_gadt =
+    Any_null : 'a widened_any_gadt
+  | Any_this : 'a -> 'a widened_any_gadt [@@or_null]
+|}]
+
+type ('a : float64) widened_float64_gadt =
+  | F_null : 'a widened_float64_gadt
+  | F_this : 'a -> 'a widened_float64_gadt
+[@@or_null]
+
+[%%expect{|
+Line 3, characters 13-15:
+3 |   | F_this : 'a -> 'a widened_float64_gadt
+                 ^^
+Error: The layout of type "'a" is float64
+         because of the annotation on 'a in the declaration of the type
+                                      widened_float64_gadt.
+       But the layout of type "'a" must be a value layout
+         because the payload of widened_float64_gadt has layout value.
 |}]
 
 type 'a existential_gadt =
