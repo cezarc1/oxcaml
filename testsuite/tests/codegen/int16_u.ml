@@ -26,8 +26,7 @@ let add x y = Int16_u.add x y
 [%%expect_asm X86_64{|
 add:
   addq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -35,8 +34,7 @@ let succ x = Int16_u.succ x
 [%%expect_asm X86_64{|
 succ:
   incq  %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -44,8 +42,7 @@ let mul x y = Int16_u.mul x y
 [%%expect_asm X86_64{|
 mul:
   imulq %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -84,8 +81,7 @@ shift_right:
   movq  %rbx, %rcx
   sarq  $1, %rcx
   salq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -94,10 +90,9 @@ let logical_shift_right x y = Int16_u.logical_shift_right x y
 logical_shift_right:
   movq  %rbx, %rcx
   sarq  $1, %rcx
-  andl  $65535, %eax
+  movzwq %ax, %rax
   shrq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -105,8 +100,7 @@ let bit_and x y = Int16_u.bit_and x y
 [%%expect_asm X86_64{|
 bit_and:
   andq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -114,8 +108,7 @@ let bit_or x y = Int16_u.bit_or x y
 [%%expect_asm X86_64{|
 bit_or:
   orq   %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -123,8 +116,7 @@ let bit_xor x y = Int16_u.bit_xor x y
 [%%expect_asm X86_64{|
 bit_xor:
   xorq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -135,8 +127,7 @@ let bswap x = Int16_u.bswap x
 bswap:
   xchg  %ah, %al
   movzwq %ax, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -144,11 +135,9 @@ bswap:
 let neg x = Int16_u.neg x
 [%%expect_asm X86_64{|
 neg:
-  movq  %rax, %rbx
-  xorl  %eax, %eax
-  subq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  xorl  %ebx, %ebx
+  subq  %rax, %rbx
+  movswq %bx, %rax
   ret
 |}]
 
@@ -156,8 +145,7 @@ let pred x = Int16_u.pred x
 [%%expect_asm X86_64{|
 pred:
   decq  %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -165,8 +153,7 @@ let sub x y = Int16_u.sub x y
 [%%expect_asm X86_64{|
 sub:
   subq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -178,8 +165,7 @@ div:
   je    .L0
   cqto
   idivq %rcx
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -197,9 +183,7 @@ rem:
   je    .L0
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %dx, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -215,8 +199,7 @@ unsafe_div:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -226,9 +209,7 @@ unsafe_rem:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %dx, %rax
   ret
 |}]
 
@@ -343,8 +324,7 @@ let of_float x = Int16_u.of_float x
 of_float:
   vmovsd (%rax), %xmm0
   vcvttsd2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -352,8 +332,7 @@ let of_float_u x = Int16_u.of_float_u x
 [%%expect_asm X86_64{|
 of_float_u:
   vcvttsd2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -362,8 +341,7 @@ let of_float32 x = Int16_u.of_float32 x
 of_float32:
   vmovss 8(%rax), %xmm0
   vcvttss2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -371,8 +349,7 @@ let of_float32_u x = Int16_u.of_float32_u x
 [%%expect_asm X86_64{|
 of_float32_u:
   vcvttss2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -387,8 +364,7 @@ of_int:
 let of_int_u x = Int16_u.of_int_u x
 [%%expect_asm X86_64{|
 of_int_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -404,16 +380,14 @@ let of_int32 x = Int16_u.of_int32 x
 [%%expect_asm X86_64{|
 of_int32:
   movslq 8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
 let of_int32_u x = Int16_u.of_int32_u x
 [%%expect_asm X86_64{|
 of_int32_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -421,16 +395,14 @@ let of_int64 x = Int16_u.of_int64 x
 [%%expect_asm X86_64{|
 of_int64:
   movq  8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
 let of_int64_u x = Int16_u.of_int64_u x
 [%%expect_asm X86_64{|
 of_int64_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -452,16 +424,14 @@ let of_nativeint x = Int16_u.of_nativeint x
 [%%expect_asm X86_64{|
 of_nativeint:
   movq  8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
 let of_nativeint_u x = Int16_u.of_nativeint_u x
 [%%expect_asm X86_64{|
 of_nativeint_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -587,8 +557,7 @@ to_int64_u:
 let to_int8 x = Int16_u.to_int8 x
 [%%expect_asm X86_64{|
 to_int8:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -596,8 +565,7 @@ to_int8:
 let to_int8_u x = Int16_u.to_int8_u x
 [%%expect_asm X86_64{|
 to_int8_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -629,8 +597,7 @@ let popcount x = Int16_u.popcount x
 [%%expect_asm X86_64{|
 popcount:
   popcnt %ax, %ax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -638,8 +605,7 @@ let ctz x = Int16_u.ctz x
 [%%expect_asm X86_64{|
 ctz:
   lzcnt %ax, %ax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -647,8 +613,7 @@ let clz x = Int16_u.clz x
 [%%expect_asm X86_64{|
 clz:
   tzcnt %ax, %ax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -658,8 +623,7 @@ shl:
   movq  %rbx, %rcx
   andl  $15, %ecx
   salq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -677,21 +641,17 @@ let shr x y = Int16_u.shr x y
 shr:
   movq  %rbx, %rcx
   andl  $15, %ecx
-  andl  $65535, %eax
+  movzwq %ax, %rax
   shrq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
 let select x y z = Int16_u.select x y z
 [%%expect_asm X86_64{|
 select:
-  movq  %rax, %rsi
-  movq  %rdi, %rax
-  cmpq  $1, %rsi
-  cmovne %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  cmpq  $1, %rax
+  cmovne %rbx, %rdi
+  movswq %di, %rax
   ret
 |}]

@@ -290,7 +290,6 @@ bswap16:
   sarq  $1, %rax
   xchg  %ah, %al
   movzwq %ax, %rax
-  andl  $65535, %eax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -445,8 +444,7 @@ let shift_of_logand (a : int64#) =
 [%%expect_asm X86_64{|
 shift_of_logand:
   movq  %rax, %rcx
-  movl  $1, %eax
-  andq  %rax, %rcx
+  andl  $1, %ecx
   movl  $3, %eax
   shrq  %cl, %rax
   orq   $1, %rax

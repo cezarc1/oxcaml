@@ -1823,11 +1823,9 @@ external int_u_bswap : int# -> int# = "%int#_bswap"
 let int_u_bswap x = int_u_bswap x
 [%%expect_asm X86_64{|
 int_u_bswap:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   xchg  %ah, %al
   movzwq %ax, %rax
-  andl  $65535, %eax
   ret
 |}]
 
@@ -1938,8 +1936,8 @@ let int_u_lsr x y = int_u_lsr x y
 int_u_lsr:
   movq  %rbx, %rcx
   sarq  $1, %rcx
-  movabsq $9223372036854775807, %rbx
-  andq  %rbx, %rax
+  salq  $1, %rax
+  shrq  $1, %rax
   shrq  %cl, %rax
   salq  $1, %rax
   sarq  $1, %rax
@@ -2273,8 +2271,7 @@ let int16_u_add x y = int16_u_add x y
 [%%expect_asm X86_64{|
 int16_u_add:
   addq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2283,8 +2280,7 @@ let int16_u_and x y = int16_u_and x y
 [%%expect_asm X86_64{|
 int16_u_and:
   andq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2304,8 +2300,7 @@ let int16_u_bswap x = int16_u_bswap x
 int16_u_bswap:
   xchg  %ah, %al
   movzwq %ax, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2332,8 +2327,7 @@ int16_u_div:
   je    .L0
   cqto
   idivq %rcx
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -2405,8 +2399,7 @@ int16_u_lsl:
   movq  %rbx, %rcx
   sarq  $1, %rcx
   salq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2416,10 +2409,9 @@ let int16_u_lsr x y = int16_u_lsr x y
 int16_u_lsr:
   movq  %rbx, %rcx
   sarq  $1, %rcx
-  andl  $65535, %eax
+  movzwq %ax, %rax
   shrq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2432,9 +2424,7 @@ int16_u_mod:
   je    .L0
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %dx, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -2449,8 +2439,7 @@ let int16_u_mul x y = int16_u_mul x y
 [%%expect_asm X86_64{|
 int16_u_mul:
   imulq %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2458,11 +2447,9 @@ external int16_u_neg : int16# -> int16# = "%int16#_neg"
 let int16_u_neg x = int16_u_neg x
 [%%expect_asm X86_64{|
 int16_u_neg:
-  movq  %rax, %rbx
-  xorl  %eax, %eax
-  subq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  xorl  %ebx, %ebx
+  subq  %rax, %rbx
+  movswq %bx, %rax
   ret
 |}]
 
@@ -2483,8 +2470,7 @@ let int16_u_of_float x = int16_u_of_float x
 int16_u_of_float:
   vmovsd (%rax), %xmm0
   vcvttsd2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2493,8 +2479,7 @@ let int16_u_of_float_u x = int16_u_of_float_u x
 [%%expect_asm X86_64{|
 int16_u_of_float_u:
   vcvttsd2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2504,8 +2489,7 @@ let int16_u_of_float32 x = int16_u_of_float32 x
 int16_u_of_float32:
   vmovss 8(%rax), %xmm0
   vcvttss2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2514,8 +2498,7 @@ let int16_u_of_float32_u x = int16_u_of_float32_u x
 [%%expect_asm X86_64{|
 int16_u_of_float32_u:
   vcvttss2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2532,8 +2515,7 @@ external int16_u_of_int_u : int# -> int16# = "%int16#_of_int#"
 let int16_u_of_int_u x = int16_u_of_int_u x
 [%%expect_asm X86_64{|
 int16_u_of_int_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2551,8 +2533,7 @@ let int16_u_of_int32 x = int16_u_of_int32 x
 [%%expect_asm X86_64{|
 int16_u_of_int32:
   movslq 8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2560,8 +2541,7 @@ external int16_u_of_int32_u : int32# -> int16# = "%int16#_of_int32#"
 let int16_u_of_int32_u x = int16_u_of_int32_u x
 [%%expect_asm X86_64{|
 int16_u_of_int32_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2570,8 +2550,7 @@ let int16_u_of_int64 x = int16_u_of_int64 x
 [%%expect_asm X86_64{|
 int16_u_of_int64:
   movq  8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2579,8 +2558,7 @@ external int16_u_of_int64_u : int64# -> int16# = "%int16#_of_int64#"
 let int16_u_of_int64_u x = int16_u_of_int64_u x
 [%%expect_asm X86_64{|
 int16_u_of_int64_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2605,8 +2583,7 @@ let int16_u_of_nativeint x = int16_u_of_nativeint x
 [%%expect_asm X86_64{|
 int16_u_of_nativeint:
   movq  8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2614,8 +2591,7 @@ external int16_u_of_nativeint_u : nativeint# -> int16# = "%int16#_of_nativeint#"
 let int16_u_of_nativeint_u x = int16_u_of_nativeint_u x
 [%%expect_asm X86_64{|
 int16_u_of_nativeint_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2624,8 +2600,7 @@ let int16_u_or x y = int16_u_or x y
 [%%expect_asm X86_64{|
 int16_u_or:
   orq   %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2634,8 +2609,7 @@ let int16_u_pred x = int16_u_pred x
 [%%expect_asm X86_64{|
 int16_u_pred:
   decq  %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2644,8 +2618,7 @@ let int16_u_sub x y = int16_u_sub x y
 [%%expect_asm X86_64{|
 int16_u_sub:
   subq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2654,8 +2627,7 @@ let int16_u_succ x = int16_u_succ x
 [%%expect_asm X86_64{|
 int16_u_succ:
   incq  %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2666,8 +2638,7 @@ int16_u_unsafe_div:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2678,9 +2649,7 @@ int16_u_unsafe_mod:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %dx, %rax
   ret
 |}]
 
@@ -2747,8 +2716,7 @@ let int16_u_xor x y = int16_u_xor x y
 [%%expect_asm X86_64{|
 int16_u_xor:
   xorq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   ret
 |}]
 
@@ -2759,8 +2727,7 @@ int16_add:
   sarq  $1, %rbx
   sarq  $1, %rax
   addq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -2772,8 +2739,7 @@ int16_and:
   sarq  $1, %rbx
   sarq  $1, %rax
   andq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -2799,8 +2765,7 @@ int16_bswap:
   sarq  $48, %rax
   xchg  %ah, %al
   movzwq %ax, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -2836,8 +2801,7 @@ int16_div:
   sarq  $48, %rax
   cqto
   idivq %rcx
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 .L0:
@@ -2932,8 +2896,7 @@ int16_lsl:
   salq  $47, %rax
   sarq  $48, %rax
   salq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -2945,10 +2908,9 @@ int16_lsr:
   movq  %rbx, %rcx
   sarq  $1, %rcx
   sarq  $1, %rax
-  andl  $65535, %eax
+  movzwq %ax, %rax
   shrq  %cl, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -2966,9 +2928,8 @@ int16_mod:
   sarq  $48, %rax
   cqto
   idivq %rcx
-  salq  $48, %rdx
-  sarq  $48, %rdx
-  leaq  1(%rdx,%rdx), %rax
+  movswq %dx, %rax
+  leaq  1(%rax,%rax), %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -2985,8 +2946,7 @@ int16_mul:
   sarq  $1, %rbx
   sarq  $1, %rax
   imulq %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -2998,9 +2958,8 @@ int16_neg:
   sarq  $1, %rax
   xorl  %ebx, %ebx
   subq  %rax, %rbx
-  salq  $48, %rbx
-  sarq  $48, %rbx
-  leaq  1(%rbx,%rbx), %rax
+  movswq %bx, %rax
+  leaq  1(%rax,%rax), %rax
   ret
 |}]
 
@@ -3025,8 +2984,7 @@ let int16_of_float x = int16_of_float x
 int16_of_float:
   vmovsd (%rax), %xmm0
   vcvttsd2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3036,8 +2994,7 @@ let int16_of_float_u x = int16_of_float_u x
 [%%expect_asm X86_64{|
 int16_of_float_u:
   vcvttsd2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3048,8 +3005,7 @@ let int16_of_float32 x = int16_of_float32 x
 int16_of_float32:
   vmovss 8(%rax), %xmm0
   vcvttss2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3059,8 +3015,7 @@ let int16_of_float32_u x = int16_of_float32_u x
 [%%expect_asm X86_64{|
 int16_of_float32_u:
   vcvttss2si %xmm0, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3079,8 +3034,7 @@ external int16_of_int_u : int# -> int16 = "%int16_of_int#"
 let int16_of_int_u x = int16_of_int_u x
 [%%expect_asm X86_64{|
 int16_of_int_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3098,8 +3052,7 @@ let int16_of_int32 x = int16_of_int32 x
 [%%expect_asm X86_64{|
 int16_of_int32:
   movslq 8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3108,8 +3061,7 @@ external int16_of_int32_u : int32# -> int16 = "%int16_of_int32#"
 let int16_of_int32_u x = int16_of_int32_u x
 [%%expect_asm X86_64{|
 int16_of_int32_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3119,8 +3071,7 @@ let int16_of_int64 x = int16_of_int64 x
 [%%expect_asm X86_64{|
 int16_of_int64:
   movq  8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3129,8 +3080,7 @@ external int16_of_int64_u : int64# -> int16 = "%int16_of_int64#"
 let int16_of_int64_u x = int16_of_int64_u x
 [%%expect_asm X86_64{|
 int16_of_int64_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3158,8 +3108,7 @@ let int16_of_nativeint x = int16_of_nativeint x
 [%%expect_asm X86_64{|
 int16_of_nativeint:
   movq  8(%rax), %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3168,8 +3117,7 @@ external int16_of_nativeint_u : nativeint# -> int16 = "%int16_of_nativeint#"
 let int16_of_nativeint_u x = int16_of_nativeint_u x
 [%%expect_asm X86_64{|
 int16_of_nativeint_u:
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3181,8 +3129,7 @@ int16_or:
   sarq  $1, %rbx
   sarq  $1, %rax
   orq   %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3193,8 +3140,7 @@ let int16_pred x = int16_pred x
 int16_pred:
   sarq  $1, %rax
   decq  %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3206,8 +3152,7 @@ int16_sub:
   sarq  $1, %rbx
   sarq  $1, %rax
   subq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3218,8 +3163,7 @@ let int16_succ x = int16_succ x
 int16_succ:
   sarq  $1, %rax
   incq  %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3235,8 +3179,7 @@ int16_unsafe_div:
   sarq  $48, %rax
   cqto
   idivq %rcx
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -3252,9 +3195,8 @@ int16_unsafe_mod:
   sarq  $48, %rax
   cqto
   idivq %rcx
-  salq  $48, %rdx
-  sarq  $48, %rdx
-  leaq  1(%rdx,%rdx), %rax
+  movswq %dx, %rax
+  leaq  1(%rax,%rax), %rax
   ret
 |}]
 
@@ -3343,8 +3285,7 @@ int16_xor:
   sarq  $1, %rbx
   sarq  $1, %rax
   xorq  %rbx, %rax
-  salq  $48, %rax
-  sarq  $48, %rax
+  movswq %ax, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6012,8 +5953,7 @@ let int8_u_add x y = int8_u_add x y
 [%%expect_asm X86_64{|
 int8_u_add:
   addq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6022,8 +5962,7 @@ let int8_u_and x y = int8_u_and x y
 [%%expect_asm X86_64{|
 int8_u_and:
   andq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6067,8 +6006,7 @@ int8_u_div:
   je    .L0
   cqto
   idivq %rcx
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -6140,8 +6078,7 @@ int8_u_lsl:
   movq  %rbx, %rcx
   sarq  $1, %rcx
   salq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6151,10 +6088,9 @@ let int8_u_lsr x y = int8_u_lsr x y
 int8_u_lsr:
   movq  %rbx, %rcx
   sarq  $1, %rcx
-  andl  $255, %eax
+  movzbq %al, %rax
   shrq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6167,9 +6103,7 @@ int8_u_mod:
   je    .L0
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %dl, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -6184,8 +6118,7 @@ let int8_u_mul x y = int8_u_mul x y
 [%%expect_asm X86_64{|
 int8_u_mul:
   imulq %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6193,11 +6126,9 @@ external int8_u_neg : int8# -> int8# = "%int8#_neg"
 let int8_u_neg x = int8_u_neg x
 [%%expect_asm X86_64{|
 int8_u_neg:
-  movq  %rax, %rbx
-  xorl  %eax, %eax
-  subq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  xorl  %ebx, %ebx
+  subq  %rax, %rbx
+  movsbq %bl, %rax
   ret
 |}]
 
@@ -6218,8 +6149,7 @@ let int8_u_of_float x = int8_u_of_float x
 int8_u_of_float:
   vmovsd (%rax), %xmm0
   vcvttsd2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6228,8 +6158,7 @@ let int8_u_of_float_u x = int8_u_of_float_u x
 [%%expect_asm X86_64{|
 int8_u_of_float_u:
   vcvttsd2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6239,8 +6168,7 @@ let int8_u_of_float32 x = int8_u_of_float32 x
 int8_u_of_float32:
   vmovss 8(%rax), %xmm0
   vcvttss2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6249,8 +6177,7 @@ let int8_u_of_float32_u x = int8_u_of_float32_u x
 [%%expect_asm X86_64{|
 int8_u_of_float32_u:
   vcvttss2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6267,8 +6194,7 @@ external int8_u_of_int_u : int# -> int8# = "%int8#_of_int#"
 let int8_u_of_int_u x = int8_u_of_int_u x
 [%%expect_asm X86_64{|
 int8_u_of_int_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6285,8 +6211,7 @@ external int8_u_of_int16_u : int16# -> int8# = "%int8#_of_int16#"
 let int8_u_of_int16_u x = int8_u_of_int16_u x
 [%%expect_asm X86_64{|
 int8_u_of_int16_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6295,8 +6220,7 @@ let int8_u_of_int32 x = int8_u_of_int32 x
 [%%expect_asm X86_64{|
 int8_u_of_int32:
   movslq 8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6304,8 +6228,7 @@ external int8_u_of_int32_u : int32# -> int8# = "%int8#_of_int32#"
 let int8_u_of_int32_u x = int8_u_of_int32_u x
 [%%expect_asm X86_64{|
 int8_u_of_int32_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6314,8 +6237,7 @@ let int8_u_of_int64 x = int8_u_of_int64 x
 [%%expect_asm X86_64{|
 int8_u_of_int64:
   movq  8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6323,8 +6245,7 @@ external int8_u_of_int64_u : int64# -> int8# = "%int8#_of_int64#"
 let int8_u_of_int64_u x = int8_u_of_int64_u x
 [%%expect_asm X86_64{|
 int8_u_of_int64_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6342,8 +6263,7 @@ let int8_u_of_nativeint x = int8_u_of_nativeint x
 [%%expect_asm X86_64{|
 int8_u_of_nativeint:
   movq  8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6351,8 +6271,7 @@ external int8_u_of_nativeint_u : nativeint# -> int8# = "%int8#_of_nativeint#"
 let int8_u_of_nativeint_u x = int8_u_of_nativeint_u x
 [%%expect_asm X86_64{|
 int8_u_of_nativeint_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6361,8 +6280,7 @@ let int8_u_or x y = int8_u_or x y
 [%%expect_asm X86_64{|
 int8_u_or:
   orq   %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6371,8 +6289,7 @@ let int8_u_pred x = int8_u_pred x
 [%%expect_asm X86_64{|
 int8_u_pred:
   decq  %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6381,8 +6298,7 @@ let int8_u_sub x y = int8_u_sub x y
 [%%expect_asm X86_64{|
 int8_u_sub:
   subq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6391,8 +6307,7 @@ let int8_u_succ x = int8_u_succ x
 [%%expect_asm X86_64{|
 int8_u_succ:
   incq  %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6403,8 +6318,7 @@ int8_u_unsafe_div:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6415,9 +6329,7 @@ int8_u_unsafe_mod:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %dl, %rax
   ret
 |}]
 
@@ -6484,8 +6396,7 @@ let int8_u_xor x y = int8_u_xor x y
 [%%expect_asm X86_64{|
 int8_u_xor:
   xorq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -6496,8 +6407,7 @@ int8_add:
   sarq  $1, %rbx
   sarq  $1, %rax
   addq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6509,8 +6419,7 @@ int8_and:
   sarq  $1, %rbx
   sarq  $1, %rax
   andq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6569,8 +6478,7 @@ int8_div:
   sarq  $56, %rax
   cqto
   idivq %rcx
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 .L0:
@@ -6665,8 +6573,7 @@ int8_lsl:
   salq  $55, %rax
   sarq  $56, %rax
   salq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6678,10 +6585,9 @@ int8_lsr:
   movq  %rbx, %rcx
   sarq  $1, %rcx
   sarq  $1, %rax
-  andl  $255, %eax
+  movzbq %al, %rax
   shrq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6699,9 +6605,8 @@ int8_mod:
   sarq  $56, %rax
   cqto
   idivq %rcx
-  salq  $56, %rdx
-  sarq  $56, %rdx
-  leaq  1(%rdx,%rdx), %rax
+  movsbq %dl, %rax
+  leaq  1(%rax,%rax), %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -6718,8 +6623,7 @@ int8_mul:
   sarq  $1, %rbx
   sarq  $1, %rax
   imulq %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6731,9 +6635,8 @@ int8_neg:
   sarq  $1, %rax
   xorl  %ebx, %ebx
   subq  %rax, %rbx
-  salq  $56, %rbx
-  sarq  $56, %rbx
-  leaq  1(%rbx,%rbx), %rax
+  movsbq %bl, %rax
+  leaq  1(%rax,%rax), %rax
   ret
 |}]
 
@@ -6758,8 +6661,7 @@ let int8_of_float x = int8_of_float x
 int8_of_float:
   vmovsd (%rax), %xmm0
   vcvttsd2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6769,8 +6671,7 @@ let int8_of_float_u x = int8_of_float_u x
 [%%expect_asm X86_64{|
 int8_of_float_u:
   vcvttsd2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6781,8 +6682,7 @@ let int8_of_float32 x = int8_of_float32 x
 int8_of_float32:
   vmovss 8(%rax), %xmm0
   vcvttss2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6792,8 +6692,7 @@ let int8_of_float32_u x = int8_of_float32_u x
 [%%expect_asm X86_64{|
 int8_of_float32_u:
   vcvttss2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6812,8 +6711,7 @@ external int8_of_int_u : int# -> int8 = "%int8_of_int#"
 let int8_of_int_u x = int8_of_int_u x
 [%%expect_asm X86_64{|
 int8_of_int_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6832,8 +6730,7 @@ external int8_of_int16_u : int16# -> int8 = "%int8_of_int16#"
 let int8_of_int16_u x = int8_of_int16_u x
 [%%expect_asm X86_64{|
 int8_of_int16_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6843,8 +6740,7 @@ let int8_of_int32 x = int8_of_int32 x
 [%%expect_asm X86_64{|
 int8_of_int32:
   movslq 8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6853,8 +6749,7 @@ external int8_of_int32_u : int32# -> int8 = "%int8_of_int32#"
 let int8_of_int32_u x = int8_of_int32_u x
 [%%expect_asm X86_64{|
 int8_of_int32_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6864,8 +6759,7 @@ let int8_of_int64 x = int8_of_int64 x
 [%%expect_asm X86_64{|
 int8_of_int64:
   movq  8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6874,8 +6768,7 @@ external int8_of_int64_u : int64# -> int8 = "%int8_of_int64#"
 let int8_of_int64_u x = int8_of_int64_u x
 [%%expect_asm X86_64{|
 int8_of_int64_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6893,8 +6786,7 @@ let int8_of_nativeint x = int8_of_nativeint x
 [%%expect_asm X86_64{|
 int8_of_nativeint:
   movq  8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6903,8 +6795,7 @@ external int8_of_nativeint_u : nativeint# -> int8 = "%int8_of_nativeint#"
 let int8_of_nativeint_u x = int8_of_nativeint_u x
 [%%expect_asm X86_64{|
 int8_of_nativeint_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6916,8 +6807,7 @@ int8_or:
   sarq  $1, %rbx
   sarq  $1, %rax
   orq   %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6928,8 +6818,7 @@ let int8_pred x = int8_pred x
 int8_pred:
   sarq  $1, %rax
   decq  %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6941,8 +6830,7 @@ int8_sub:
   sarq  $1, %rbx
   sarq  $1, %rax
   subq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6953,8 +6841,7 @@ let int8_succ x = int8_succ x
 int8_succ:
   sarq  $1, %rax
   incq  %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6970,8 +6857,7 @@ int8_unsafe_div:
   sarq  $56, %rax
   cqto
   idivq %rcx
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -6987,9 +6873,8 @@ int8_unsafe_mod:
   sarq  $56, %rax
   cqto
   idivq %rcx
-  salq  $56, %rdx
-  sarq  $56, %rdx
-  leaq  1(%rdx,%rdx), %rax
+  movsbq %dl, %rax
+  leaq  1(%rax,%rax), %rax
   ret
 |}]
 
@@ -7078,8 +6963,7 @@ int8_xor:
   sarq  $1, %rbx
   sarq  $1, %rax
   xorq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   leaq  1(%rax,%rax), %rax
   ret
 |}]
@@ -7118,7 +7002,6 @@ int_bswap:
   sarq  $1, %rax
   xchg  %ah, %al
   movzwq %ax, %rax
-  andl  $65535, %eax
   leaq  1(%rax,%rax), %rax
   ret
 |}]

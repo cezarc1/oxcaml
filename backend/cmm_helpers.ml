@@ -998,6 +998,13 @@ let rec low_bits ~bits ~dbg x =
     map_tail
       (function
         | Cop
+            ( Cstatic_cast (Int64_of_tagged_int _),
+              [Cop (Cstatic_cast Tagged_int_of_int64, [x], _)],
+              _ ) ->
+          (* Tagging then untagging changes only the top bit, and [bits <
+             arch_bits] here *)
+          low_bits ~bits x ~dbg
+        | Cop
             ( (Casr | Clsr),
               [Cop (Clsl, [x; Cconst_int (left, _)], _); Cconst_int (right, _)],
               _ )
@@ -1868,6 +1875,22 @@ let zero_extend ~(width : int_width) ~dbg e =
   | Int8 | Int16 | Int32 ->
     map_tail
       (function
+        | Cop
+            ( Cstatic_cast
+                (Int_of_int { src; dst = Int64; signedness = Unsigned }),
+              _,
+              _ ) as e
+          when bits_of_int_width src <= bits_of_int_width width ->
+          (* already zero-extended from a width at most [width] *)
+          e
+        | Cop (Cbswap { bitwidth = Sixteen }, _, _) as e
+          when 16 <= bits_of_int_width width ->
+          (* [Cbswap Sixteen] returns a zero-extended 16-bit value *)
+          e
+        | Cop (Cbswap { bitwidth = Thirtytwo }, _, _) as e
+          when 32 <= bits_of_int_width width ->
+          (* [Cbswap Thirtytwo] returns a zero-extended 32-bit value *)
+          e
         | Cop (Cload { memory_chunk; mutability; is_atomic }, args, dbg) as e
           -> (
           let load memory_chunk =
@@ -1919,6 +1942,13 @@ let rec sign_extend ~(width : int_width) ~dbg e =
           else
             let e = lsl_const0 inner (unused_bits - n) dbg in
             asr_const e unused_bits dbg
+        | Cop
+            ( Cstatic_cast (Int_of_int { src; dst = Int64; signedness = Signed }),
+              _,
+              _ ) as e
+          when bits_of_int_width src <= bits_of_int_width width ->
+          (* already sign-extended from a width at most [width] *)
+          e
         | Cop (Cload { memory_chunk; mutability; is_atomic }, args, dbg) as e
           -> (
           let load memory_chunk =
@@ -1937,7 +1967,14 @@ let rec sign_extend ~(width : int_width) ~dbg e =
    2^(arch_bits - 1) and sign- or zero-extends the result to the entire
    register, by tagging and then untagging it. *)
 let normalize_untagged_immediate ~(signedness : Scalar.Signedness.t) ~dbg e =
-  let tagged = Cop (Cstatic_cast Tagged_int_of_int64, [e], dbg) in
+  let tagged =
+    match e with
+    (* Retagging an untagged tagged int gives back the original tagged int
+       (whose low bit is 1), regardless of the signedness it was untagged
+       with. *)
+    | Cop (Cstatic_cast (Int64_of_tagged_int _), [tagged], _) -> tagged
+    | e -> Cop (Cstatic_cast Tagged_int_of_int64, [e], dbg)
+  in
   Cop (Cstatic_cast (Int64_of_tagged_int { signedness }), [tagged], dbg)
 
 let unboxed_or_untagged_packed_array_ref arr index dbg ~log2_size_addr
@@ -5746,10 +5783,11 @@ module Scalar_type = struct
       match src, dst with
       | Untagged src, Untagged dst -> Integer.static_cast ~dbg ~src ~dst exp
       | Tagged src, Tagged dst -> Tagged_integer.static_cast ~dbg ~src ~dst exp
-      | Untagged src, Tagged dst ->
-        tag_int
-          (Integer.static_cast ~dbg ~src ~dst:(Tagged_integer.untagged dst) exp)
-          dbg
+      | Untagged _, Tagged _ ->
+        (* There is no need to normalize [exp] to the untagged width first:
+           that width is [arch_bits - 1], and tagging discards the high bit
+           anyway. *)
+        tag_int exp dbg
       | Tagged src, Untagged dst ->
         Integer.static_cast ~dbg
           ~src:(Tagged_integer.untagged src)

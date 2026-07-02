@@ -20,8 +20,7 @@ let add x y = Int8_u.add x y
 [%%expect_asm X86_64{|
 add:
   addq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -29,8 +28,7 @@ let succ x = Int8_u.succ x
 [%%expect_asm X86_64{|
 succ:
   incq  %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -38,8 +36,7 @@ let mul x y = Int8_u.mul x y
 [%%expect_asm X86_64{|
 mul:
   imulq %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -78,8 +75,7 @@ shift_right:
   movq  %rbx, %rcx
   sarq  $1, %rcx
   salq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -88,10 +84,9 @@ let logical_shift_right x y = Int8_u.logical_shift_right x y
 logical_shift_right:
   movq  %rbx, %rcx
   sarq  $1, %rcx
-  andl  $255, %eax
+  movzbq %al, %rax
   shrq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -99,8 +94,7 @@ let bit_and x y = Int8_u.bit_and x y
 [%%expect_asm X86_64{|
 bit_and:
   andq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -108,8 +102,7 @@ let bit_or x y = Int8_u.bit_or x y
 [%%expect_asm X86_64{|
 bit_or:
   orq   %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -117,8 +110,7 @@ let bit_xor x y = Int8_u.bit_xor x y
 [%%expect_asm X86_64{|
 bit_xor:
   xorq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -131,11 +123,9 @@ bswap:
 let neg x = Int8_u.neg x
 [%%expect_asm X86_64{|
 neg:
-  movq  %rax, %rbx
-  xorl  %eax, %eax
-  subq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  xorl  %ebx, %ebx
+  subq  %rax, %rbx
+  movsbq %bl, %rax
   ret
 |}]
 
@@ -143,8 +133,7 @@ let pred x = Int8_u.pred x
 [%%expect_asm X86_64{|
 pred:
   decq  %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -152,8 +141,7 @@ let sub x y = Int8_u.sub x y
 [%%expect_asm X86_64{|
 sub:
   subq  %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -165,8 +153,7 @@ div:
   je    .L0
   cqto
   idivq %rcx
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -184,9 +171,7 @@ rem:
   je    .L0
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %dl, %rax
   ret
 .L0:
   movq  caml_exn_Division_by_zero@GOTPCREL(%rip), %rax
@@ -202,8 +187,7 @@ unsafe_div:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -213,9 +197,7 @@ unsafe_rem:
   movq  %rbx, %rcx
   cqto
   idivq %rcx
-  movq  %rdx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %dl, %rax
   ret
 |}]
 
@@ -330,8 +312,7 @@ let of_float x = Int8_u.of_float x
 of_float:
   vmovsd (%rax), %xmm0
   vcvttsd2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -339,8 +320,7 @@ let of_float_u x = Int8_u.of_float_u x
 [%%expect_asm X86_64{|
 of_float_u:
   vcvttsd2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -349,8 +329,7 @@ let of_float32 x = Int8_u.of_float32 x
 of_float32:
   vmovss 8(%rax), %xmm0
   vcvttss2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -358,8 +337,7 @@ let of_float32_u x = Int8_u.of_float32_u x
 [%%expect_asm X86_64{|
 of_float32_u:
   vcvttss2si %xmm0, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -374,8 +352,7 @@ of_int:
 let of_int_u x = Int8_u.of_int_u x
 [%%expect_asm X86_64{|
 of_int_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -390,8 +367,7 @@ of_int16:
 let of_int16_u x = Int8_u.of_int16_u x
 [%%expect_asm X86_64{|
 of_int16_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -399,16 +375,14 @@ let of_int32 x = Int8_u.of_int32 x
 [%%expect_asm X86_64{|
 of_int32:
   movslq 8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
 let of_int32_u x = Int8_u.of_int32_u x
 [%%expect_asm X86_64{|
 of_int32_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -416,16 +390,14 @@ let of_int64 x = Int8_u.of_int64 x
 [%%expect_asm X86_64{|
 of_int64:
   movq  8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
 let of_int64_u x = Int8_u.of_int64_u x
 [%%expect_asm X86_64{|
 of_int64_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -441,16 +413,14 @@ let of_nativeint x = Int8_u.of_nativeint x
 [%%expect_asm X86_64{|
 of_nativeint:
   movq  8(%rax), %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
 let of_nativeint_u x = Int8_u.of_nativeint_u x
 [%%expect_asm X86_64{|
 of_nativeint_u:
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -613,10 +583,9 @@ to_nativeint_u:
 let popcount x = Int8_u.popcount x
 [%%expect_asm X86_64{|
 popcount:
-  andl  $255, %eax
+  movzbq %al, %rax
   popcnt %rax, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -626,19 +595,17 @@ ctz:
   movl  $256, %ebx
   orq   %rbx, %rax
   tzcnt %rax, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
 let clz x = Int8_u.clz x
 [%%expect_asm X86_64{|
 clz:
-  andl  $255, %eax
+  movzbq %al, %rax
   lzcnt %rax, %rax
   addq  $-56, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -648,8 +615,7 @@ shl:
   movq  %rbx, %rcx
   andl  $7, %ecx
   salq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
@@ -667,21 +633,17 @@ let shr x y = Int8_u.shr x y
 shr:
   movq  %rbx, %rcx
   andl  $7, %ecx
-  andl  $255, %eax
+  movzbq %al, %rax
   shrq  %cl, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  movsbq %al, %rax
   ret
 |}]
 
 let select x y z = Int8_u.select x y z
 [%%expect_asm X86_64{|
 select:
-  movq  %rax, %rsi
-  movq  %rdi, %rax
-  cmpq  $1, %rsi
-  cmovne %rbx, %rax
-  salq  $56, %rax
-  sarq  $56, %rax
+  cmpq  $1, %rax
+  cmovne %rbx, %rdi
+  movsbq %dil, %rax
   ret
 |}]
