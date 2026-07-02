@@ -502,20 +502,20 @@ let position_and_mode env (expected_mode : expected_mode) sexp
   end
 
 (* ap_mode is the return mode of the current application *)
-let check_tail_call_local_returning loc env ap_mode {region_mode; _} =
-  match region_mode with
-  | Some region_mode -> begin
+let check_tail_call_local_returning loc env ap_mode {apply_position; _} =
+  match apply_position with
+  | Tail -> begin
     (* This application will be performed after the current region is closed; if
        ap_mode is local, the application allocates in the outer
        region, and thus [region_mode] needs to be marked local as well*)
       match
         Regionality.submode ~pp:(loc, Expression)
-          (locality_as_regionality ap_mode) region_mode
+          (locality_as_regionality ap_mode) Regionality.global
       with
       | Ok () -> ()
       | Error _ -> raise (Error (loc, env, Tail_call_local_returning))
     end
-  | None -> ()
+  | Nontail | Default -> ()
 
 let meet_regional ?hint:h mode =
   let mode = Value.disallow_left mode in
@@ -7219,7 +7219,8 @@ and type_expect_
       in
       let mode_ret = Alloc.disallow_right mode_ret in
       let ap_mode = Alloc.proj_comonadic Areality mode_ret in
-      let mode_ret = cross_left env ty_ret (alloc_as_value mode_ret) in
+      let mode_ret = cross_left env ty_ret (alloc_as_value mode_ret)
+      in
       let zero_alloc =
         Builtin_attributes.get_zero_alloc_attribute ~in_signature:false
           ~on_application:true
@@ -13225,7 +13226,8 @@ let report_error ~loc env =
   | Tail_call_local_returning ->
       Location.errorf ~loc
         "@[This application is local-returning, but is at the tail@ \
-          position of a function that is not local-returning.@]"
+          position of a function that is not local-returning.@ \
+          Hint: Use exclave_ to return a local value.@]"
   | Unboxed_int_literals_not_supported ->
       Location.errorf ~loc
         "@[Unboxed int literals aren't supported yet.@]"
