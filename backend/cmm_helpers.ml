@@ -1853,17 +1853,19 @@ let addr_array_initialize arr ofs newval dbg =
       [array_indexing log2_size_addr arr ofs dbg; newval],
       dbg )
 
-(** [zero_extend ~bits dbg e] returns [e] with the most significant
-    [arch_bits - bits] bits set to 0 *)
-let zero_extend ~bits ~dbg e =
-  assert (0 < bits && bits <= arch_bits);
-  let mask = Nativeint.pred (Nativeint.shift_left 1n bits) in
-  let zero_extend_via_mask e =
-    Cop (Cand, [e; natint_const_untagged dbg mask], dbg)
+(** [zero_extend ~width dbg e] returns [e] with the most significant
+    [arch_bits - bits_of_int_width width] bits set to 0 *)
+let zero_extend ~(width : int_width) ~dbg e =
+  let zero_extend_via_cast e =
+    Cop
+      ( Cstatic_cast
+          (Int_of_int { src = width; dst = Int64; signedness = Unsigned }),
+        [e],
+        dbg )
   in
-  if bits = arch_bits
-  then e
-  else
+  match width with
+  | Int64 -> e
+  | Int8 | Int16 | Int32 ->
     map_tail
       (function
         | Cop (Cload { memory_chunk; mutability; is_atomic }, args, dbg) as e
@@ -1871,33 +1873,36 @@ let zero_extend ~bits ~dbg e =
           let load memory_chunk =
             Cop (Cload { memory_chunk; mutability; is_atomic }, args, dbg)
           in
-          match memory_chunk, bits with
-          | (Byte_signed | Byte_unsigned), 8 -> load Byte_unsigned
-          | (Sixteen_signed | Sixteen_unsigned), 16 -> load Sixteen_unsigned
-          | (Thirtytwo_signed | Thirtytwo_unsigned), 32 ->
+          match memory_chunk, width with
+          | (Byte_signed | Byte_unsigned), Int8 -> load Byte_unsigned
+          | (Sixteen_signed | Sixteen_unsigned), Int16 -> load Sixteen_unsigned
+          | (Thirtytwo_signed | Thirtytwo_unsigned), Int32 ->
             load Thirtytwo_unsigned
-          | _ -> zero_extend_via_mask e)
-        | e -> zero_extend_via_mask e)
-      (low_bits ~bits e ~dbg)
+          | _ -> zero_extend_via_cast e)
+        | e -> zero_extend_via_cast e)
+      (low_bits ~bits:(bits_of_int_width width) e ~dbg)
 
-let rec sign_extend ~bits ~dbg e =
-  assert (0 < bits && bits <= arch_bits);
-  let unused_bits = arch_bits - bits in
-  let sign_extend_via_shift e =
-    asr_const (lsl_const0 e unused_bits dbg) unused_bits dbg
+let rec sign_extend ~(width : int_width) ~dbg e =
+  let unused_bits = arch_bits - bits_of_int_width width in
+  let sign_extend_via_cast e =
+    Cop
+      ( Cstatic_cast
+          (Int_of_int { src = width; dst = Int64; signedness = Signed }),
+        [e],
+        dbg )
   in
-  if bits = arch_bits
-  then e
-  else
+  match width with
+  | Int64 -> e
+  | Int8 | Int16 | Int32 ->
     map_tail
       (fun e ->
         match prefer_or e with
         | Cop (Cand, [x; y], _) when is_constant y ->
-          and_int (sign_extend ~bits x ~dbg) (sign_extend ~bits y ~dbg) dbg
+          and_int (sign_extend ~width x ~dbg) (sign_extend ~width y ~dbg) dbg
         | Cop (Cor, [x; y], _) when is_constant y ->
-          or_int (sign_extend ~bits x ~dbg) (sign_extend ~bits y ~dbg) dbg
+          or_int (sign_extend ~width x ~dbg) (sign_extend ~width y ~dbg) dbg
         | Cop (Cxor, [x; y], _) when is_constant y ->
-          xor_int (sign_extend ~bits x ~dbg) (sign_extend ~bits y ~dbg) dbg
+          xor_int (sign_extend ~width x ~dbg) (sign_extend ~width y ~dbg) dbg
         | Cop (((Casr | Clsr) as op), [inner; Cconst_int (n, _)], _) as e
           when is_defined_shift n ->
           (* see middle_end/flambda2/z3/sign_extension.py for proof *)
@@ -1919,13 +1924,21 @@ let rec sign_extend ~bits ~dbg e =
           let load memory_chunk =
             Cop (Cload { memory_chunk; mutability; is_atomic }, args, dbg)
           in
-          match memory_chunk, bits with
-          | (Byte_signed | Byte_unsigned), 8 -> load Byte_signed
-          | (Sixteen_signed | Sixteen_unsigned), 16 -> load Sixteen_signed
-          | (Thirtytwo_signed | Thirtytwo_unsigned), 32 -> load Thirtytwo_signed
-          | _ -> sign_extend_via_shift e)
-        | e -> sign_extend_via_shift e)
-      (low_bits ~bits e ~dbg)
+          match memory_chunk, width with
+          | (Byte_signed | Byte_unsigned), Int8 -> load Byte_signed
+          | (Sixteen_signed | Sixteen_unsigned), Int16 -> load Sixteen_signed
+          | (Thirtytwo_signed | Thirtytwo_unsigned), Int32 ->
+            load Thirtytwo_signed
+          | _ -> sign_extend_via_cast e)
+        | e -> sign_extend_via_cast e)
+      (low_bits ~bits:(bits_of_int_width width) e ~dbg)
+
+(* [normalize_untagged_immediate ~signedness ~dbg e] reduces [e] modulo
+   2^(arch_bits - 1) and sign- or zero-extends the result to the entire
+   register, by tagging and then untagging it. *)
+let normalize_untagged_immediate ~(signedness : Scalar.Signedness.t) ~dbg e =
+  let tagged = Cop (Cstatic_cast Tagged_int_of_int64, [e], dbg) in
+  Cop (Cstatic_cast (Int64_of_tagged_int { signedness }), [tagged], dbg)
 
 let unboxed_or_untagged_packed_array_ref arr index dbg ~log2_size_addr
     ~memory_chunk =
@@ -1971,12 +1984,12 @@ let unboxed_mutable_int32_unboxed_product_array_ref arr ~array_index dbg =
   unboxed_or_untagged_unboxed_product_array_ref ~memory_chunk:Thirtytwo_signed
     arr ~array_index dbg
 
-let unboxed_or_untagged_mutable_unboxed_product_array_set ~bits arr ~array_index
-    ~new_value dbg =
+let unboxed_or_untagged_mutable_unboxed_product_array_set ~width arr
+    ~array_index ~new_value dbg =
   bind "arr" arr (fun arr ->
       bind "index" array_index (fun index ->
           bind "new_value" new_value (fun new_value ->
-              let new_value = sign_extend ~bits new_value ~dbg in
+              let new_value = sign_extend ~width new_value ~dbg in
               Cop
                 ( Cstore (Word_int, Assignment),
                   [array_indexing log2_size_addr arr index dbg; new_value],
@@ -1984,17 +1997,17 @@ let unboxed_or_untagged_mutable_unboxed_product_array_set ~bits arr ~array_index
 
 let untagged_mutable_int8_unboxed_product_array_set arr ~array_index ~new_value
     dbg =
-  unboxed_or_untagged_mutable_unboxed_product_array_set ~bits:8 arr ~array_index
-    ~new_value dbg
+  unboxed_or_untagged_mutable_unboxed_product_array_set ~width:Int8 arr
+    ~array_index ~new_value dbg
 
 let untagged_mutable_int16_unboxed_product_array_set arr ~array_index ~new_value
     dbg =
-  unboxed_or_untagged_mutable_unboxed_product_array_set ~bits:16 arr
+  unboxed_or_untagged_mutable_unboxed_product_array_set ~width:Int16 arr
     ~array_index ~new_value dbg
 
 let unboxed_mutable_int32_unboxed_product_array_set arr ~array_index ~new_value
     dbg =
-  unboxed_or_untagged_mutable_unboxed_product_array_set ~bits:32 arr
+  unboxed_or_untagged_mutable_unboxed_product_array_set ~width:Int32 arr
     ~array_index ~new_value dbg
 
 let unboxed_float32_array_ref =
@@ -2582,7 +2595,9 @@ let box_int_gen dbg (bi : Primitive.boxed_integer) mode arg =
   let arg' =
     if bi = Primitive.Boxed_int32
     then
-      if big_endian then lsl_const arg 32 dbg else sign_extend ~bits:32 arg ~dbg
+      if big_endian
+      then lsl_const arg 32 dbg
+      else sign_extend ~width:Int32 arg ~dbg
     else arg
   in
   Cop
@@ -2626,12 +2641,12 @@ let unbox_int dbg bi =
       when bi = Primitive.Boxed_int32 && big_endian
            && alloc_matches_boxed_int bi ~hdr ~ops ->
       (* Force sign-extension of low 32 bits *)
-      sign_extend ~bits:32 contents ~dbg
+      sign_extend ~width:Int32 contents ~dbg
     | Cop (Calloc _, [hdr; ops; contents], _dbg)
       when bi = Primitive.Boxed_int32 && (not big_endian)
            && alloc_matches_boxed_int bi ~hdr ~ops ->
       (* Force sign-extension of low 32 bits *)
-      sign_extend ~bits:32 contents ~dbg
+      sign_extend ~width:Int32 contents ~dbg
     | Cop (Calloc _, [hdr; ops; contents], _dbg)
       when alloc_matches_boxed_int bi ~hdr ~ops ->
       contents
@@ -2656,7 +2671,12 @@ let bit_count (bi : Primitive.unboxed_or_untagged_integer) =
   | Untagged_int -> (size_int * 8) - 1
 
 let make_unsigned_int (bi : Primitive.unboxed_or_untagged_integer) arg dbg =
-  zero_extend ~bits:(bit_count bi) arg ~dbg
+  match bi with
+  | Untagged_int8 -> zero_extend ~width:Int8 arg ~dbg
+  | Untagged_int16 -> zero_extend ~width:Int16 arg ~dbg
+  | Unboxed_int32 -> zero_extend ~width:Int32 arg ~dbg
+  | Unboxed_int64 | Unboxed_nativeint -> arg
+  | Untagged_int -> normalize_untagged_immediate ~signedness:Unsigned ~dbg arg
 
 let unaligned_load_16 ~ptr_out_of_heap ptr idx dbg =
   if Arch.allow_unaligned_access
@@ -5194,7 +5214,8 @@ let atomic_compare_exchange_field ~dbg
   | Pointer ->
     atomic_compare_exchange_extcall ~dbg block ~field ~old_value ~new_value
 
-let pack_small_ints_into_word ~bits int_list dbg =
+let pack_small_ints_into_word ~width int_list dbg =
+  let bits = bits_of_int_width width in
   if bits * List.length int_list > arch_bits
   then Misc.fatal_error "Cmm_helpers.pack_small_ints_into_word: too many bits";
   if Sys.big_endian
@@ -5208,7 +5229,7 @@ let pack_small_ints_into_word ~bits int_list dbg =
       (* values are sign-extended by default. We need to change zero-extend for
          the `or` operation to be correct. *)
       let a =
-        lsl_int (zero_extend ~bits ~dbg a)
+        lsl_int (zero_extend ~width ~dbg a)
           (Cconst_int (previously_packed, dbg))
           dbg
       in
@@ -5220,10 +5241,12 @@ let make_untagged_int8_array_payload dbg untagged_int8_list =
   let rec aux acc = function
     | [] -> List.rev acc
     | a :: b :: c :: d :: e :: f :: g :: h :: r ->
-      let i = pack_small_ints_into_word ~bits:8 [a; b; c; d; e; f; g; h] dbg in
+      let i =
+        pack_small_ints_into_word ~width:Int8 [a; b; c; d; e; f; g; h] dbg
+      in
       aux (i :: acc) r
     | v ->
-      let i = pack_small_ints_into_word ~bits:8 v dbg in
+      let i = pack_small_ints_into_word ~width:Int8 v dbg in
       List.rev (i :: acc)
   in
   aux [] untagged_int8_list
@@ -5251,10 +5274,10 @@ let make_untagged_int16_array_payload dbg untagged_int16_list =
   let rec aux acc = function
     | [] -> List.rev acc
     | a :: b :: c :: d :: r ->
-      let i = pack_small_ints_into_word ~bits:16 [a; b; c; d] dbg in
+      let i = pack_small_ints_into_word ~width:Int16 [a; b; c; d] dbg in
       aux (i :: acc) r
     | v ->
-      let i = pack_small_ints_into_word ~bits:16 v dbg in
+      let i = pack_small_ints_into_word ~width:Int16 v dbg in
       List.rev (i :: acc)
   in
   aux [] untagged_int16_list
@@ -5291,7 +5314,7 @@ let make_unboxed_int32_array_payload dbg unboxed_int32_list =
           ( Cor,
             [ (* [a] is sign-extended by default. We need to change it to be
                  zero-extended for the `or` operation to be correct. *)
-              zero_extend ~bits:32 a ~dbg;
+              zero_extend ~width:Int32 a ~dbg;
               Cop (Clsl, [b; Cconst_int (32, dbg)], dbg) ],
             dbg )
       in
@@ -5535,7 +5558,7 @@ module Scalar_type = struct
   end
 
   module Signedness = struct
-    type t =
+    type t = Scalar.Signedness.t =
       | Signed
       | Unsigned
 
@@ -5619,9 +5642,16 @@ module Scalar_type = struct
            expressions, this is a no-op *)
         exp
       else
-        match signedness dst with
-        | Signed -> sign_extend ~bits:(bit_width dst) exp ~dbg
-        | Unsigned -> zero_extend ~bits:(bit_width dst) exp ~dbg
+        match int_width_of_bits (bit_width dst) with
+        | Some width -> (
+          match signedness dst with
+          | Signed -> sign_extend ~width exp ~dbg
+          | Unsigned -> zero_extend ~width exp ~dbg)
+        | None ->
+          (* The only width that is not a machine width is that of untagged
+             immediates *)
+          assert (bit_width dst = arch_bits - 1);
+          normalize_untagged_immediate ~signedness:(signedness dst) ~dbg exp
 
     let[@inline] conjugate ~outer ~inner ~dbg ~f x =
       x

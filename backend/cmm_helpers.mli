@@ -477,13 +477,15 @@ val ignore_low_bit_int : expression -> expression
     bits will be irrelevant *)
 val low_bits : bits:int -> dbg:Debuginfo.t -> expression -> expression
 
-(** sign-extend a given integer expression from [bits] bits to an entire
-    register *)
-val sign_extend : bits:int -> dbg:Debuginfo.t -> expression -> expression
+(** sign-extend a given integer expression from [width] to an entire register
+*)
+val sign_extend :
+  width:Cmm.int_width -> dbg:Debuginfo.t -> expression -> expression
 
-(** zero-extend a given integer expression from [bits] bits to an entire
-    register *)
-val zero_extend : bits:int -> dbg:Debuginfo.t -> expression -> expression
+(** zero-extend a given integer expression from [width] to an entire register
+*)
+val zero_extend :
+  width:Cmm.int_width -> dbg:Debuginfo.t -> expression -> expression
 
 (** Box a given integer, without sharing of constants *)
 val box_int_gen :
@@ -1616,7 +1618,7 @@ module Scalar_type : sig
   end
 
   module Signedness : sig
-    type t =
+    type t = Scalar.Signedness.t =
       | Signed
       | Unsigned
 

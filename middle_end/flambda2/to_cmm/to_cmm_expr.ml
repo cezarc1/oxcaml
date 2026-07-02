@@ -129,9 +129,9 @@ let translate_external_call env res ~free_vars apply ~callee_simple ~args
     then cmm
     else
       match Flambda_kind.With_subkind.kind kind with
-      | Naked_number Naked_int8 -> C.sign_extend ~bits:8 ~dbg cmm
-      | Naked_number Naked_int16 -> C.sign_extend ~bits:16 ~dbg cmm
-      | Naked_number Naked_int32 -> C.sign_extend ~bits:32 ~dbg cmm
+      | Naked_number Naked_int8 -> C.sign_extend ~width:Int8 ~dbg cmm
+      | Naked_number Naked_int16 -> C.sign_extend ~width:Int16 ~dbg cmm
+      | Naked_number Naked_int32 -> C.sign_extend ~width:Int32 ~dbg cmm
       | Naked_number
           ( Naked_float | Naked_immediate | Naked_int64 | Naked_nativeint
           | Naked_vec128 | Naked_vec256 | Naked_vec512 | Naked_float32 )

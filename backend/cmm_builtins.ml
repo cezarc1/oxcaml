@@ -939,7 +939,7 @@ let transl_builtin name args dbg typ_res =
   | "caml_unsigned_int64_mulh_unboxed" ->
     mulhi ~signed:false Unboxed_int64 args dbg
   | "caml_int32_unsigned_to_int_trunc_unboxed_to_untagged" ->
-    Some (zero_extend ~bits:32 ~dbg (one_arg name args))
+    Some (zero_extend ~width:Int32 ~dbg (one_arg name args))
   | "caml_csel_value" | "caml_csel_int_untagged" | "caml_csel_int64_unboxed"
   | "caml_csel_int32_unboxed" | "caml_csel_int16_untagged"
   | "caml_csel_int8_untagged" | "caml_csel_nativeint_unboxed" ->
@@ -983,7 +983,7 @@ let transl_builtin name args dbg typ_res =
     shift ~bits:8 asr_int arg count dbg
   | "caml_int8_shift_right_logical_by_int8_untagged" ->
     let arg, count = two_args name args in
-    let arg = zero_extend ~bits:8 ~dbg arg in
+    let arg = zero_extend ~width:Int8 ~dbg arg in
     shift ~bits:8 lsr_int arg count dbg
   | "caml_int16_shift_left_by_int16_untagged" ->
     let arg, count = two_args name args in
@@ -993,7 +993,7 @@ let transl_builtin name args dbg typ_res =
     shift ~bits:16 asr_int arg count dbg
   | "caml_int16_shift_right_logical_by_int16_untagged" ->
     let arg, count = two_args name args in
-    let arg = zero_extend ~bits:16 ~dbg arg in
+    let arg = zero_extend ~width:Int16 ~dbg arg in
     shift ~bits:16 lsr_int arg count dbg
   | "caml_int32_shift_left_by_int32_unboxed" ->
     let arg, count = two_args name args in
@@ -1003,7 +1003,7 @@ let transl_builtin name args dbg typ_res =
     shift ~bits:32 asr_int arg count dbg
   | "caml_int32_shift_right_logical_by_int32_unboxed" ->
     let arg, count = two_args name args in
-    let arg = zero_extend ~bits:32 ~dbg arg in
+    let arg = zero_extend ~width:Int32 ~dbg arg in
     shift ~bits:32 lsr_int arg count dbg
   | "caml_nativeint_shift_left_by_nativeint_unboxed"
   | "caml_int64_shift_left_by_int64_unboxed" ->

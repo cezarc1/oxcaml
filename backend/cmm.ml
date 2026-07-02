@@ -35,6 +35,13 @@ let bits_of_int_width = function
   | Int16 -> 16
   | Int8 -> 8
 
+let int_width_of_bits = function
+  | 64 -> Some Int64
+  | 32 -> Some Int32
+  | 16 -> Some Int16
+  | 8 -> Some Int8
+  | _ -> None
+
 let equal_int_width w1 w2 =
   match w1, w2 with
   | Int64, Int64 | Int32, Int32 | Int16, Int16 | Int8, Int8 -> true

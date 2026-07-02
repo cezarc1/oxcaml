@@ -677,10 +677,10 @@ let string_like_load_aux ~ptr_out_of_heap ~dbg width ~str ~index =
       ~addr:(C.add_int_ptr ~ptr_out_of_heap str index dbg)
   | Sixteen -> C.unaligned_load_16 ~ptr_out_of_heap str index dbg
   | Sixteen_signed ->
-    C.sign_extend ~bits:16 ~dbg
+    C.sign_extend ~width:Int16 ~dbg
       (C.unaligned_load_16 ~ptr_out_of_heap str index dbg)
   | Thirty_two ->
-    C.sign_extend ~bits:32 ~dbg
+    C.sign_extend ~width:Int32 ~dbg
       (C.unaligned_load_32 ~ptr_out_of_heap str index dbg)
   | Single -> C.unaligned_load_f32 ~ptr_out_of_heap str index dbg
   | Sixty_four -> C.unaligned_load_64 ~ptr_out_of_heap str index dbg
@@ -824,7 +824,7 @@ let unary_int_arith_primitive _env dbg kind op arg =
       (* XXX mshinwell: Why does this case arise when it did not before? *)
       C.Scalar_type.Integral.conjugate arg ~outer:tagged_immediate
         ~inner:naked_immediate ~dbg ~f:(fun arg ->
-          C.bbswap Sixteen arg dbg |> C.zero_extend ~bits:16 ~dbg)
+          C.bbswap Sixteen arg dbg |> C.zero_extend ~width:Int16 ~dbg)
     | Naked_immediate ->
       (* This case should not have a sign extension, confusingly, because it
          arises from the [Pbswap16] Lambda primitive. That operation does not
@@ -832,21 +832,22 @@ let unary_int_arith_primitive _env dbg kind op arg =
       C.Scalar_type.Integral.static_cast arg ~dbg ~src:naked_immediate
         ~dst:naked_int16
       |> (fun arg -> C.bbswap Sixteen arg dbg)
-      |> C.zero_extend ~bits:16 ~dbg
+      |> C.zero_extend ~width:Int16 ~dbg
     | Naked_int8 -> arg
     | Naked_int16 ->
       (* Byte swaps of small integers need a sign-extension in order to match
          the Lambda semantics (where the swap might affect the sign). *)
-      C.sign_extend (C.bbswap Sixteen arg dbg) ~bits:16 ~dbg
-    | Naked_int32 -> C.sign_extend (C.bbswap Thirtytwo arg dbg) ~bits:32 ~dbg
+      C.sign_extend (C.bbswap Sixteen arg dbg) ~width:Int16 ~dbg
+    | Naked_int32 ->
+      C.sign_extend (C.bbswap Thirtytwo arg dbg) ~width:Int32 ~dbg
     (* int64 and nativeint don't require a sign-extension since they are already
        register-size, but the code is here for consistency: *)
-    | Naked_int64 -> C.sign_extend (C.bbswap Sixtyfour arg dbg) ~bits:64 ~dbg
+    | Naked_int64 ->
+      C.sign_extend (C.bbswap Sixtyfour arg dbg) ~width:Int64 ~dbg
     | Naked_nativeint -> (
-      let bits = C.arch_bits in
-      match bits with
-      | 64 -> C.sign_extend (C.bbswap Sixtyfour arg dbg) ~bits ~dbg
-      | 32 -> C.sign_extend (C.bbswap Thirtytwo arg dbg) ~bits ~dbg
+      match C.arch_bits with
+      | 64 -> C.sign_extend (C.bbswap Sixtyfour arg dbg) ~width:Int64 ~dbg
+      | 32 -> C.sign_extend (C.bbswap Thirtytwo arg dbg) ~width:Int32 ~dbg
       | arch_bits ->
         Misc.fatal_errorf "Unexpected C.arch_bits value %d" arch_bits))
 
