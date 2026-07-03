@@ -457,9 +457,30 @@ let scrape env mty =
       Subst.Lazy.force_modtype (scrape_lazy env (Subst.Lazy.of_modtype mty))
   | _ -> mty
 
+(* A signature built by substitution (a functor application result, or a
+   destructive [with]) is not translated in the current environment, so a
+   constructor refined by a local (GADT) equation carries no trace of that
+   equation's scope.  Propagate it here, so the scope-escape check confines
+   such a signature to the equation's scope, just as translating it directly
+   would.  See [tests/typing-gadts/equation_escape_functor.ml]. *)
+let scope_local_equations env mty =
+  if Env.has_local_constraints env then begin
+    let open Btype in
+    with_type_mark begin fun mark ->
+      let super = type_iterators mark in
+      let it_do_type_expr it ty =
+        Ctype.update_scope_of_local_equations env ty;
+        super.it_do_type_expr it ty
+      in
+      let it = {super with it_do_type_expr} in
+      it.it_module_type it mty
+    end
+  end
+
 let () =
   Out_type.expand_module_type := expand ;
-  Env.scrape_alias := scrape_alias_lazy
+  Env.scrape_alias := scrape_alias_lazy;
+  Env.scope_local_equations := scope_local_equations
 
 let find_type_of_module ~strengthen ~aliasable env path =
   if strengthen then

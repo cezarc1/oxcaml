@@ -4181,6 +4181,18 @@ let find_expansion_scope env path =
   | { type_manifest = None ; _ } | exception Not_found -> generic_level
   | decl -> decl.type_expansion_scope
 
+(* A GADT match refines an abstract type by equating it to a reified
+   existential, whose scope is the match.  When such a type is used directly,
+   expanding it raises its node scope to the equation's, so the scope-escape
+   check confines it to the match.  A type built by substitution (a functor
+   application result) is not expanded, so this propagates that scope onto it
+   explicitly. *)
+let update_scope_of_local_equations env ty =
+  match get_desc ty with
+  | Tconstr (path, _, _) when Env.is_local_type_constraint path env ->
+    update_scope (find_expansion_scope env path) ty
+  | _ -> ()
+
 let non_aliasable p decl =
   (* in_pervasives p ||  (subsumed by in_current_module) *)
   in_current_module p && not decl.type_is_newtype

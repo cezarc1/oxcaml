@@ -303,6 +303,11 @@ val expand_head_opt: Env.t -> type_expr -> type_expr
 (** The compiler's own version of [expand_head] necessary for type-based
     optimisations. *)
 
+val update_scope_of_local_equations: Env.t -> type_expr -> unit
+(** If [ty] denotes a local type equation (e.g. a GADT equation), raise its
+    scope to that equation's, so it cannot escape the equation's scope. Used to
+    scope types built by substitution rather than translation. *)
+
 (** Expansion of types for error traces; lives here instead of in [Errortrace]
     because the expansion machinery lives here. *)
 

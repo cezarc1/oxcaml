@@ -98,3 +98,8 @@ module Contains_type_or_jkind : sig
 end
 
 val lower_nongen: int -> module_type -> unit
+
+(* Raise the scope of any constructor in [mty] that denotes a local (GADT)
+   equation to that equation's scope, so a signature built by substitution
+   cannot escape the equation.  See [Ctype.update_scope_of_local_equations]. *)
+val scope_local_equations: Env.t -> module_type -> unit
