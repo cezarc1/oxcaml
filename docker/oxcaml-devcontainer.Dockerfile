@@ -8,7 +8,7 @@ FROM ${OCAML_BASE_IMAGE} AS build
 ARG DEBIAN_FRONTEND
 ARG BUILD_JOBS=4
 ARG OXCAML_SWITCH=oxcaml-dev
-ARG OXCAML_VARIANT_VERSION=5.4.0+oxcaml
+ARG OXCAML_COMPILER_VERSION=5.4.0+oxcaml
 ARG OCAML_VERSION=5.4.0
 
 USER root
@@ -33,7 +33,7 @@ RUN set -eux; \
     boot_switch="$(opam switch show)"; \
     opam update --yes; \
     opam switch create "${OXCAML_SWITCH}" --empty \
-      --repositories="flambda2=git+https://github.com/ocaml-flambda/flambda2-opam.git,default"; \
+      --repositories="local=file:///home/opam/oxcaml-src/tools/ci/local-opam,default"; \
     opam switch set "${boot_switch}"; \
     eval "$(opam env --switch="${boot_switch}")"; \
     opam pin add -ny oxcaml-dev .; \
@@ -43,7 +43,7 @@ RUN set -eux; \
     ./configure --prefix="${switch_prefix}"; \
     make -j"${BUILD_JOBS}" _install; \
     eval "$(opam env --switch="${OXCAML_SWITCH}")"; \
-    opam install --yes --fake "ocaml-variants.${OXCAML_VARIANT_VERSION}"; \
+    opam install --yes --fake "ocaml-base-compiler.${OXCAML_COMPILER_VERSION}"; \
     make install_for_opam; \
     opam install --yes "ocaml.${OCAML_VERSION}"; \
     opam install --yes dune menhir.20231231 ocamlformat.0.29.0 merlin ocaml-lsp-server utop; \
