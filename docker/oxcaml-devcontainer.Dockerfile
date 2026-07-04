@@ -43,10 +43,11 @@ RUN set -eux; \
     ./configure --prefix="${switch_prefix}"; \
     make -j"${BUILD_JOBS}" _install; \
     eval "$(opam env --switch="${OXCAML_SWITCH}")"; \
-    opam install --yes --fake "ocaml-base-compiler.${OXCAML_COMPILER_VERSION}"; \
+    opam install --yes --switch "${OXCAML_SWITCH}" --fake "ocaml-base-compiler.${OXCAML_COMPILER_VERSION}"; \
     make install_for_opam; \
-    opam install --yes "ocaml.${OCAML_VERSION}"; \
-    opam install --yes dune menhir.20231231 ocamlformat.0.29.0 merlin ocaml-lsp-server utop; \
+    opam install --yes --switch "${OXCAML_SWITCH}" "ocaml.${OCAML_VERSION}"; \
+    opam install --yes --switch "${OXCAML_SWITCH}" \
+      dune menhir.20231231 ocamlformat.0.29.0 merlin ocaml-lsp-server utop; \
     opam switch set "${OXCAML_SWITCH}"; \
     opam switch remove --yes "${boot_switch}"; \
     opam clean --yes --all; \
