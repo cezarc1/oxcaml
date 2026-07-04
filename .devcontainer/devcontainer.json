@@ -1,6 +1,6 @@
 {
   "name": "OxCaml prebuilt devcontainer proof",
-  "image": "ghcr.io/cezarc1/oxcaml-dev:proof",
+  "image": "ghcr.io/cezarc1/oxcaml-dev:proof-20260704T194014Z",
   "remoteUser": "opam",
   "customizations": {
     "vscode": {
