@@ -1,0 +1,14 @@
+.git
+.github
+_build
+_build_upstream
+_compare
+_coverage
+_install
+_opam
+_profile
+_runtest
+autom4te.cache
+*.log
+*.dump
+Dockerfile

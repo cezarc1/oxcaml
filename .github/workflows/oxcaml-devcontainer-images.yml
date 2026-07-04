@@ -1,0 +1,112 @@
+# CYBERSECURITY WARNING: this workflow only grants package publishing
+# permissions to image jobs. It does not grant write permission to source.
+
+name: publish prebuilt devcontainer images
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Container tag, for example proof-20260704"
+        required: false
+        type: string
+  push:
+    tags:
+      - "oxcaml-devcontainer-*"
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/oxcaml-dev
+
+jobs:
+  build:
+    name: build ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
+      packages: write
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout OxCaml
+        uses: actions/checkout@v4
+
+      - name: Resolve image version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -n "${{ inputs.version }}" ]; then
+            version="${{ inputs.version }}"
+          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            version="${GITHUB_REF_NAME#oxcaml-devcontainer-}"
+          else
+            version="sha-${GITHUB_SHA::12}"
+          fi
+          version="${version//+/-}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.arch }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/oxcaml-devcontainer.Dockerfile
+          platforms: ${{ matrix.platform }}
+          push: true
+          tags: ${{ env.IMAGE }}:${{ steps.version.outputs.version }}-${{ matrix.arch }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha,scope=oxcaml-devcontainer-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=oxcaml-devcontainer-${{ matrix.arch }}
+
+  manifest:
+    name: publish multi-arch manifest
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create manifest
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="${{ needs.build.outputs.version }}"
+          docker buildx imagetools create \
+            --tag "${IMAGE}:${version}" \
+            "${IMAGE}:${version}-amd64" \
+            "${IMAGE}:${version}-arm64"
+
+      - name: Inspect manifest
+        run: docker buildx imagetools inspect "${IMAGE}:${{ needs.build.outputs.version }}"
